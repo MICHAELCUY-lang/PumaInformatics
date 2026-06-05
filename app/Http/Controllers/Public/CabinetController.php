@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Http\Controllers\Public;
+
+use App\Http\Controllers\Controller;
+use App\Models\Cabinet;
+use App\Models\CabinetDepartment;
+use App\Models\CabinetMember;
+use Illuminate\Http\Request;
+
+class CabinetController extends Controller
+{
+    public function index(Request $request)
+    {
+        $cabinets = Cabinet::orderBy('term_year', 'desc')->get();
+
+        // Resolve active cabinet: from query param, or the one marked active, or the latest
+        $activeCabinet = null;
+        if ($request->has('cabinet')) {
+            $activeCabinet = Cabinet::where('slug', $request->query('cabinet'))->first();
+        }
+        if (!$activeCabinet) {
+            $activeCabinet = $cabinets->firstWhere('is_active', true) ?? $cabinets->first();
+        }
+
+        $departments = CabinetDepartment::with(['members' => function($query) use ($activeCabinet) {
+            $query->where('is_active', true)
+                  ->orderBy('role_hierarchy_level', 'asc')
+                  ->with('media');
+            if ($activeCabinet) {
+                $query->where('cabinet_id', $activeCabinet->id);
+            }
+        }])
+        ->orderBy('order', 'asc')
+        ->get();
+
+        // Fetch Executive members (those without a department)
+        $executives = CabinetMember::whereNull('department_id')
+            ->where('is_active', true)
+            ->with('media')
+            ->orderBy('role_hierarchy_level', 'asc');
+        
+        if ($activeCabinet) {
+            $executives->where('cabinet_id', $activeCabinet->id);
+        }
+        
+        $executives = $executives->get();
+
+        return view('public.cabinet.index', compact('departments', 'cabinets', 'activeCabinet', 'executives'));
+    }
+
+    public function show($slug)
+    {
+        $member = CabinetMember::where('slug', $slug)
+            ->with(['department', 'cabinet'])
+            ->firstOrFail();
+
+        return view('public.cabinet.show', compact('member'));
+    }
+}
+
