@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\VotingSession;
 use App\Models\Vote;
+use App\Models\Candidate;
 use App\Exceptions\DoubleVoteException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -25,12 +26,22 @@ class VotingService
                                     ->firstOrFail();
 
             // 2. Validate Session State
-            if ($session->status !== 'open') {
+            if ($session->status !== VotingSession::STATUS_ACTIVE) {
                 throw new \Exception('Voting session is not open.');
             }
 
-            if (now()->isBefore($session->start_date) || now()->isAfter($session->end_date)) {
+            if (! $session->isOpenForVoting()) {
                 throw new \Exception('Voting session is currently outside the valid time window.');
+            }
+
+            // 2b. The ballot must belong to THIS session. Without this check a voter
+            // could post a candidate_id from another session into the ledger.
+            $candidateBelongsToSession = Candidate::where('id', $candidateId)
+                                                  ->where('voting_session_id', $sessionId)
+                                                  ->exists();
+
+            if (! $candidateBelongsToSession) {
+                throw new \Exception('The selected candidate is not part of this voting session.');
             }
 
             // 3. Application-Level Check

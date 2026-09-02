@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\VotingSession;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreVotingSessionRequest extends FormRequest
 {
@@ -16,8 +18,8 @@ class StoreVotingSessionRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'in:draft,active,completed,archived'],
-            'results_visibility' => ['required', 'in:private,public,voters_only'],
+            'status' => ['required', Rule::in(VotingSession::STATUSES)],
+            'results_visibility' => ['required', Rule::in(VotingSession::VISIBILITIES)],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ];

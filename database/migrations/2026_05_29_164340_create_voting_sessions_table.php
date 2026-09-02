@@ -17,8 +17,9 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             
-            $table->string('status')->default('draft'); // draft, scheduled, open, closed, archived
-            $table->string('results_visibility')->default('hidden'); // hidden, live, admin_only
+            // Canonical values live on App\Models\VotingSession::STATUSES / ::VISIBILITIES
+            $table->string('status')->default('draft'); // draft, active, completed, archived
+            $table->string('results_visibility')->default('private'); // private, voters_only, public
             
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
