@@ -29,7 +29,17 @@ step() { printf '\n=== %s ===\n' "$1"; }
 cd "$APP"
 
 step "1/8 Pull"
-git pull --ff-only origin master
+# bash reads a script incrementally while running it, so a pull that changes
+# this very file shifts the bytes under the interpreter mid-execution — the rest
+# of the run can silently execute the wrong lines. Pull first, then hand over to
+# the updated copy with exec, so every later step comes from one consistent
+# version of the file.
+if [ "${DEPLOY_REEXEC:-}" != "1" ]; then
+    git pull --ff-only origin master
+    export DEPLOY_REEXEC=1
+    exec bash "$APP/bin/deploy.sh" "$@"
+fi
+echo "  already at $(git rev-parse --short HEAD)"
 
 step "2/8 Composer"
 # Composer's post-autoload-dump hook runs `artisan package:discover` through
