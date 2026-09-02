@@ -57,6 +57,10 @@ class InvitationService
                 'status' => 'active',
             ]);
 
+            // Redeeming the emailed token already proves control of the address,
+            // so don't make invited staff go through a second verification round.
+            $user->forceFill(['email_verified_at' => now()])->save();
+
             if ($invitation->role_id) {
                 $user->assignRole($invitation->role_id);
             }
