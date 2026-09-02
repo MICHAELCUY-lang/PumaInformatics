@@ -26,13 +26,16 @@ return [
             'name' => 'PURTC',
             'full_name' => 'President University Robotics and Technology Club',
             'logo' => 'clubs/purtc.png',
+            // The domain resolves and holds a certificate, but nothing is
+            // published there yet — it still serves cPanel's placeholder. Left
+            // null so the entry reads "coming soon" instead of linking to it.
             'url' => null,
         ],
         [
             'name' => 'PLRC',
             'full_name' => 'President University Literature and Research Club',
             'logo' => 'clubs/plrc.png',
-            'url' => '/plrc',
+            'url' => 'https://plrc.president.ac.id',
         ],
     ],
 
