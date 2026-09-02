@@ -22,8 +22,12 @@ class Seo extends Component
         $appName = config('app.name', 'PUMA IT');
         
         $this->title = $title ? "{$title} - {$appName}" : "{$appName} - Excellence in Technology";
-        $this->description = $description ?? 'The official institutional showcase for PUMA IT. Discover our projects, news, and initiatives.';
-        $this->image = $image ?? asset('images/default-og.jpg'); // Fallback image
+        // Blade passes "" (not null) when a @section is absent, so use ?: not ??.
+        $this->description = $description ?: 'The official institutional showcase for PUMA IT. Discover our projects, news, and initiatives.';
+        // Falls back to the site logo, which actually ships in public/.
+        // The previous default pointed at images/default-og.jpg, a file that
+        // does not exist, so every share card rendered broken.
+        $this->image = $image ?: asset('logo.png');
         $this->type = $type;
         $this->url = Request::url();
     }

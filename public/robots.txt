@@ -1,6 +1,10 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
+Disallow: /join/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
 Allow: /
 
-Sitemap: /sitemap.xml
+Sitemap: https://informatics.president.ac.id/sitemap.xml

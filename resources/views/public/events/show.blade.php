@@ -57,7 +57,7 @@
                     <div>
                         <span class="block text-[10px] uppercase tracking-[0.25em] text-jp-indigo/40 font-semibold mb-2">Date & Time</span>
                         <span class="block text-jp-indigo font-medium">{{ $event->start_date->format('l, F j, Y') }}</span>
-                        <span class="block text-jp-indigo/60 text-sm">{{ $event->start_date->format('g:i A') }} - {{ $event->end_date->format('g:i A') }}</span>
+                        <span class="block text-jp-indigo/60 text-sm">{{ $event->start_date->format('g:i A') }}@if($event->end_date) - {{ $event->end_date->format('g:i A') }}@endif</span>
                     </div>
                     <div>
                         <span class="block text-[10px] uppercase tracking-[0.25em] text-jp-indigo/40 font-semibold mb-2">Location</span>
