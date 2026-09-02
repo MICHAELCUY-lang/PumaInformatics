@@ -8,7 +8,14 @@
 
     Expects: $cabinetLineage (Cabinet collection, newest first), $activeSlug
 --}}
-@props(['cabinetLineage' => collect(), 'activeSlug' => null, 'compact' => false])
+@props(['cabinetLineage' => collect(), 'activeSlug' => null, 'compact' => false, 'showClubs' => true])
+
+@php
+    // Clubs sit beside the cabinets rather than in their own section: both
+    // answer "what is under PUMA Informatics", just on different axes — one
+    // over time, one right now.
+    $clubs = $showClubs && ! $compact ? config('puma.clubs', []) : [];
+@endphp
 
 @if($cabinetLineage->count() > 1)
 <section @class([
@@ -43,6 +50,12 @@
         @else
             <h2 id="lineage-heading" class="sr-only">Choose a cabinet generation</h2>
         @endif
+
+    <div @class([
+            'flex flex-col lg:flex-row items-center lg:items-start justify-center',
+            'gap-12 lg:gap-16' => ! $compact,
+            'gap-8' => $compact,
+        ])>
 
         <ul @class([
                 'flex flex-wrap justify-center items-start',
@@ -96,6 +109,65 @@
                 </li>
             @endforeach
         </ul>
+
+        @if($clubs)
+            {{-- Divider: a vertical rule beside the cabinets on wide screens,
+                 a horizontal one above the clubs when the row stacks. --}}
+            <div class="shrink-0 self-stretch flex items-center" aria-hidden="true">
+                <span class="hidden lg:block w-px h-32 bg-gradient-to-b from-transparent via-jp-indigo/15 to-transparent"></span>
+                <span class="lg:hidden w-40 h-px bg-gradient-to-r from-transparent via-jp-indigo/15 to-transparent"></span>
+            </div>
+
+            <div class="text-center">
+                <h3 class="text-[10px] uppercase tracking-[0.35em] text-jp-indigo/40 font-semibold mb-8">
+                    Clubs &amp; Communities
+                </h3>
+
+                <ul class="flex flex-wrap justify-center items-start gap-8 md:gap-12">
+                    @foreach($clubs as $club)
+                        {{-- Anchor when the club has a site, plain div when it
+                             does not: better than an href that goes nowhere. --}}
+                        <li class="w-32 sm:w-36">
+                            <{{ $club['url'] ? 'a' : 'div' }}
+                                @if($club['url'])
+                                    href="{{ $club['url'] }}"
+                                @endif
+                                @class([
+                                    'block text-center rounded-sm',
+                                    'group focus:outline-none focus-visible:ring-2 focus-visible:ring-jp-gold focus-visible:ring-offset-4 focus-visible:ring-offset-jp-cream-warm' => $club['url'],
+                                ])
+                                @if($club['url']) title="{{ $club['full_name'] }}" @endif>
+
+                                <span @class([
+                                    'relative mx-auto flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white ring-1 ring-jp-indigo/10 transition-all duration-700 ease-cinematic',
+                                    'group-hover:ring-jp-gold group-hover:shadow-wave group-hover:-translate-y-1' => $club['url'],
+                                    'opacity-60' => ! $club['url'],
+                                ])>
+                                    <img src="{{ asset($club['logo']) }}"
+                                         alt=""
+                                         loading="lazy"
+                                         class="w-full h-full object-contain p-3">
+                                </span>
+
+                                <span @class([
+                                    'mt-4 block font-serif text-base text-jp-indigo transition-colors duration-500',
+                                    'group-hover:text-jp-gold' => $club['url'],
+                                    'text-jp-indigo/50' => ! $club['url'],
+                                ])>{{ $club['name'] }}</span>
+
+                                @if($club['url'])
+                                    <span class="mt-1 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/30">Visit</span>
+                                @else
+                                    <span class="mt-1 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/25">Coming soon</span>
+                                @endif
+                            </{{ $club['url'] ? 'a' : 'div' }}>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        </div>
     </div>
 </section>
 @endif
