@@ -7,8 +7,14 @@
             
             <!-- Brand Column -->
             <div class="md:col-span-12 lg:col-span-5">
-                <a href="{{ url('/') }}" class="inline-block mb-12 group">
-                    <img src="{{ asset('logo.png') }}" alt="Logo" class="h-16 w-auto brightness-0 invert opacity-90 group-hover:opacity-100 transition-all duration-1000 ease-cinematic transform group-hover:scale-105">
+                {{-- The mark ships as a white rounded card, not a transparent
+                     glyph, so brightness-0 invert would turn its background
+                     solid black and swallow it on this dark panel. It is shown
+                     as-is on a matching white tile instead. --}}
+                <a href="{{ url('/') }}" class="inline-flex mb-12 group">
+                    <span class="grid place-items-center w-20 h-20 rounded-2xl bg-white/95 p-2 transition-transform duration-1000 ease-cinematic transform group-hover:scale-105">
+                        <img src="{{ asset('logo.png') }}" alt="PUMA Informatics" class="w-full h-full object-contain">
+                    </span>
                 </a>
                 <p class="text-white/70 text-lg leading-relaxed max-w-md font-medium mb-12">
                     PUMA Informatics is the official student organization for the Informatics Department at President University, dedicated to fostering technological excellence and social contribution.

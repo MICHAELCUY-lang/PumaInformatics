@@ -1,159 +1,178 @@
-<nav 
-    aria-label="Main Navigation"
-    role="navigation"
-    x-data="{ 
-        scrolled: false, 
-        menuOpen: false 
-    }" 
-    x-init="
-        $watch('menuOpen', value => {
-            if (value) document.body.classList.add('overflow-hidden');
-            else document.body.classList.remove('overflow-hidden');
-        })
-    "
-    @scroll.window="scrolled = (window.pageYOffset > 20)"
-    class="fixed w-full z-[100] transition-all duration-1000 ease-cinematic top-0"
-    :class="{
-        'bg-sapientia-cream/80 backdrop-blur-xl': scrolled && !menuOpen,
-        'bg-transparent': !scrolled || menuOpen
+@php
+    $links = [
+        ['label' => 'Newsroom',  'route' => route('public.news.index'),        'pattern' => 'news*'],
+        ['label' => 'Events',    'route' => route('public.events.index'),      'pattern' => 'events*'],
+        ['label' => 'Projects',  'route' => route('public.projects.index'),    'pattern' => 'projects*'],
+        ['label' => 'Cabinet',   'route' => route('public.cabinet.index'),     'pattern' => 'cabinet*'],
+        ['label' => 'Aspirations','route' => route('public.aspirations.create'),'pattern' => 'aspirations*'],
+    ];
+@endphp
+
+{{--
+    Dynamic Island navigation.
+
+    A floating dark pill rather than a full-width bar: it keeps the cream page
+    visually uninterrupted and reads as an object sitting above the content.
+
+    Two behaviours, one element:
+      desktop — links sit inline inside the pill
+      mobile  — the pill expands downward into a rounded card, the way the
+                iPhone island grows to hold more content
+
+    The expansion animates max-height and border-radius together on an iOS-style
+    easing curve, which is what makes it feel like one object changing shape
+    instead of a panel appearing.
+--}}
+<nav
+    x-data="{
+        open: false,
+        scrolled: false,
+        close() { this.open = false },
     }"
-    :style="scrolled && !menuOpen ? 'border-bottom: 1px solid rgba(68,138,255,0.05);' : ''"
->
-    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div class="flex justify-between items-center transition-all duration-700" :class="(scrolled && !menuOpen) ? 'h-20' : 'h-28'">
-            <!-- Brand -->
-            <div class="flex-shrink-0 flex items-center relative z-[110]">
-                <a href="{{ url('/') }}" aria-label="Home" class="flex items-center gap-4 group focus:outline-none rounded-sm py-2">
-                    <img src="{{ asset('logo.png') }}" alt="Logo" class="h-10 w-auto transform group-hover:scale-105 transition-transform duration-700 ease-cinematic" :class="menuOpen ? 'drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]' : ''">
+    x-init="$watch('open', v => document.body.style.overflow = v ? 'hidden' : '')"
+    @scroll.window="scrolled = window.pageYOffset > 24"
+    @keydown.escape.window="close()"
+    @click.outside="close()"
+    class="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none"
+    aria-label="Primary">
+
+    <div class="w-full max-w-6xl px-4 sm:px-6 pointer-events-auto"
+         :class="scrolled ? 'pt-3' : 'pt-5 sm:pt-7'"
+         style="transition: padding-top .5s cubic-bezier(.32,.72,0,1)">
+
+        <div
+            class="relative mx-auto overflow-hidden bg-jp-ink/90 backdrop-blur-2xl ring-1 ring-white/10 text-jp-cream"
+            :class="{
+                'rounded-[36px] shadow-[0_18px_50px_-12px_rgba(10,17,40,0.55)]': !open,
+                'rounded-[32px] shadow-[0_28px_70px_-14px_rgba(10,17,40,0.7)]': open,
+            }"
+            style="transition: border-radius .5s cubic-bezier(.32,.72,0,1), box-shadow .5s cubic-bezier(.32,.72,0,1), max-width .5s cubic-bezier(.32,.72,0,1)"
+            :style="scrolled && !open ? 'max-width: 52rem' : 'max-width: 72rem'">
+
+            {{-- Collapsed row: always visible --}}
+            <div class="flex items-center justify-between gap-4 px-4 sm:px-5"
+                 :class="scrolled && !open ? 'h-14' : 'h-16'"
+                 style="transition: height .5s cubic-bezier(.32,.72,0,1)">
+
+                <a href="{{ url('/') }}"
+                   class="flex items-center gap-3 shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-jp-gold"
+                   aria-label="PUMA Informatics — home">
+                    {{-- Rounded square rather than a circle: the mark is a white
+                         rounded card, so a circular crop would clip its corners
+                         and leave a visible white square inside a ring. --}}
+                    <span class="grid place-items-center w-9 h-9 rounded-xl bg-white overflow-hidden">
+                        <img src="{{ asset('logo.png') }}" alt="" class="w-full h-full object-contain scale-110">
+                    </span>
+                    <span class="hidden sm:block font-serif text-[15px] leading-none tracking-wide">
+                        PUMA <span class="text-jp-gold">Informatics</span>
+                    </span>
                 </a>
-            </div>
 
-            <!-- Right Side: Hamburger -->
-            <div class="flex items-center gap-8 relative z-[110]">
-                <!-- Animated Hamburger Icon -->
-                <button 
-                    @click="menuOpen = !menuOpen" 
-                    type="button" 
-                    class="relative w-12 h-12 flex flex-col items-center justify-center group focus:outline-none"
-                    aria-label="Toggle Menu"
-                >
-                    <div class="relative w-6 h-5">
-                        <span 
-                            class="absolute block w-full h-[2px] transition-all duration-500 ease-cinematic transform origin-center"
-                            :class="menuOpen ? 'rotate-45 top-2 bg-white' : 'top-0 bg-sapientia-deep'"
-                        ></span>
-                        <span 
-                            class="absolute block w-full h-[2px] top-2 transition-all duration-500 ease-cinematic"
-                            :class="menuOpen ? 'opacity-0 translate-x-4 bg-white' : 'opacity-100 bg-sapientia-deep'"
-                        ></span>
-                        <span 
-                            class="absolute block w-full h-[2px] transition-all duration-500 ease-cinematic transform origin-center"
-                            :class="menuOpen ? '-rotate-45 top-2 bg-white' : 'top-4 bg-sapientia-deep'"
-                        ></span>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Full Screen Menu Overlay -->
-    <div 
-        x-show="menuOpen"
-        x-transition:enter="transition ease-out duration-800"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-600"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-sapientia-deep z-[105] overflow-y-auto"
-        style="display: none;"
-    >
-        <!-- Background Artistic Elements -->
-        <div class="fixed inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute inset-0 bg-topo opacity-[0.08] mix-blend-screen"></div>
-            <div class="absolute inset-0 bg-sapientia-ink opacity-[0.55] mix-blend-screen"></div>
-            <!-- Large rotating star -->
-            <div class="absolute -bottom-1/4 -right-1/4 w-[800px] h-[800px] opacity-[0.03] animate-lotus-spin">
-                <svg viewBox="0 0 200 200" fill="none" class="w-full h-full text-white">
-                    <g transform="translate(100,100)">
-                        @for($i = 0; $i < 8; $i++)
-                        <path d="M0,0 Q15,-30 0,-60 Q-15,-30 0,0" fill="currentColor" transform="rotate({{ $i * 45 }})" />
-                        @endfor
-                    </g>
-                </svg>
-            </div>
-            <!-- Seigaiha pattern -->
-            <div class="absolute top-0 left-0 w-full h-full jp-seigaiha opacity-[0.02]"></div>
-        </div>
-
-        <div class="relative z-10 min-h-screen flex flex-col md:flex-row">
-            <!-- Left Side: Large Branding/Decoration -->
-            <div class="hidden md:flex md:w-1/3 min-h-screen border-r border-white/5 items-center justify-center p-20">
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-24 h-24 mb-10 opacity-20">
-                        <svg viewBox="0 0 200 200" fill="none" class="w-full h-full text-white">
-                            <g transform="translate(100,100)">
-                                @for($i = 0; $i < 8; $i++)
-                                <path d="M0,0 Q15,-30 0,-60 Q-15,-30 0,0" fill="currentColor" transform="rotate({{ $i * 45 }})" />
-                                @endfor
-                            </g>
-                        </svg>
-                    </div>
-                    <h2 class="font-serif text-3xl text-white/10 uppercase tracking-[0.5em] vertical-text">SAPIENTIA</h2>
-                </div>
-            </div>
-
-            <!-- Right Side: Navigation Links -->
-            <div class="flex-grow min-h-screen flex flex-col justify-start md:justify-center px-6 sm:px-10 md:px-24 py-24 sm:py-28 md:py-40">
-                <div class="flex flex-col items-start space-y-5 sm:space-y-6 md:space-y-10">
-                    @php
-                        $navItems = [
-                            ['label' => 'Home', 'route' => url('/')],
-                            ['label' => 'The Newsroom', 'route' => route('public.news.index')],
-                            ['label' => 'Exhibitions', 'route' => route('public.events.index')],
-                            ['label' => 'Project Archive', 'route' => route('public.projects.index')],
-                            ['label' => 'The Cabinet', 'route' => route('public.cabinet.index')],
-                            ['label' => 'Aspirations', 'route' => route('public.aspirations.create')],
-                        ];
-                    @endphp
-
-                    @foreach($navItems as $index => $item)
-                        <a 
-                            href="{{ $item['route'] }}" 
-                            @click="menuOpen = false"
-                            class="group relative flex items-center gap-10 overflow-hidden"
-                            x-show="menuOpen"
-                            x-transition:enter="transition ease-out duration-700 delay-{{ $index * 100 }}"
-                            x-transition:enter-start="opacity-0 translate-x-20"
-                            x-transition:enter-end="opacity-100 translate-x-0"
-                        >
-                            <span class="font-sans text-[10px] sm:text-xs md:text-sm tracking-[0.5em] text-sapientia-primary font-bold opacity-0 group-hover:opacity-100 transition-all duration-700 -translate-x-10 group-hover:translate-x-0">0{{ $index + 1 }}</span>
-                            <span class="font-serif text-3xl sm:text-4xl md:text-7xl lg:text-8xl leading-[1.05] text-white/30 group-hover:text-white transition-all duration-700 ease-cinematic transform group-hover:translate-x-4">{{ $item['label'] }}</span>
-                            <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-sapientia-primary group-hover:w-full transition-all duration-1000 ease-cinematic"></span>
-                        </a>
+                {{-- Desktop links --}}
+                <ul class="hidden lg:flex items-center gap-1">
+                    @foreach($links as $link)
+                        @php $active = request()->is($link['pattern']); @endphp
+                        <li>
+                            <a href="{{ $link['route'] }}"
+                               @class([
+                                   'relative block px-4 py-2 rounded-full text-[12px] uppercase tracking-[0.18em] transition-colors duration-500',
+                                   'text-jp-cream/60 hover:text-jp-cream hover:bg-white/5' => ! $active,
+                                   'text-jp-ink bg-jp-gold' => $active,
+                               ])
+                               @if($active) aria-current="page" @endif>
+                                {{ $link['label'] }}
+                            </a>
+                        </li>
                     @endforeach
-                </div>
+                </ul>
 
-                <!-- Footer in Menu -->
-                <div class="mt-20 md:mt-32 flex flex-col md:flex-row gap-12 items-start md:items-center">
-                    <div class="flex items-center gap-10">
-                        <a href="#" class="group flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-sapientia-primary group-hover:bg-sapientia-primary transition-all duration-500">
-                                <svg class="w-4 h-4 text-white/40 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                            </span>
-                            <span class="text-[10px] tracking-[0.4em] uppercase font-bold text-white/60 group-hover:text-white transition-colors">Instagram</span>
+                <div class="flex items-center gap-2 shrink-0">
+                    @auth
+                        <a href="{{ route('dashboard') }}"
+                           class="hidden sm:inline-flex items-center h-9 px-4 rounded-full bg-white/10 hover:bg-white/20 text-[11px] uppercase tracking-[0.18em] transition-colors duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-jp-gold">
+                            Dashboard
                         </a>
-                        <a href="#" class="group flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-sapientia-primary group-hover:bg-sapientia-primary transition-all duration-500">
-                                <svg class="w-4 h-4 text-white/40 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                            </span>
-                            <span class="text-[10px] tracking-[0.4em] uppercase font-bold text-white/60 group-hover:text-white transition-colors">LinkedIn</span>
+                    @else
+                        <a href="{{ route('login') }}"
+                           class="hidden sm:inline-flex items-center h-9 px-4 rounded-full bg-white/10 hover:bg-white/20 text-[11px] uppercase tracking-[0.18em] transition-colors duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-jp-gold">
+                            Sign in
                         </a>
+                    @endauth
+
+                    {{-- Expand toggle: the island's own control --}}
+                    <button type="button"
+                            @click="open = !open"
+                            class="lg:hidden grid place-items-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-jp-gold"
+                            :aria-expanded="open ? 'true' : 'false'"
+                            aria-controls="island-menu">
+                        <span class="sr-only" x-text="open ? 'Close menu' : 'Open menu'">Open menu</span>
+                        <span class="relative block w-4 h-3" aria-hidden="true">
+                            <span class="absolute inset-x-0 top-0 h-[1.5px] bg-jp-cream rounded-full"
+                                  style="transition: transform .45s cubic-bezier(.32,.72,0,1), opacity .3s"
+                                  :style="open ? 'transform: translateY(5.5px) rotate(45deg)' : ''"></span>
+                            <span class="absolute inset-x-0 top-[5.5px] h-[1.5px] bg-jp-cream rounded-full"
+                                  style="transition: opacity .3s"
+                                  :style="open ? 'opacity: 0' : ''"></span>
+                            <span class="absolute inset-x-0 bottom-0 h-[1.5px] bg-jp-cream rounded-full"
+                                  style="transition: transform .45s cubic-bezier(.32,.72,0,1), opacity .3s"
+                                  :style="open ? 'transform: translateY(-5.5px) rotate(-45deg)' : ''"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Expanded content. max-height animates so the island grows as one
+                 shape; overflow-hidden on the parent keeps the corners clean. --}}
+            <div id="island-menu"
+                 class="lg:hidden overflow-hidden"
+                 style="transition: max-height .5s cubic-bezier(.32,.72,0,1), opacity .35s"
+                 :style="open ? 'max-height: 32rem; opacity: 1' : 'max-height: 0; opacity: 0'"
+                 :aria-hidden="open ? 'false' : 'true'">
+
+                <div class="px-3 pb-3 pt-1">
+                    <div class="h-px bg-white/10 mx-2 mb-2"></div>
+
+                    <ul class="space-y-0.5">
+                        @foreach($links as $i => $link)
+                            @php $active = request()->is($link['pattern']); @endphp
+                            <li>
+                                <a href="{{ $link['route'] }}"
+                                   @click="close()"
+                                   @class([
+                                       'flex items-center justify-between px-4 py-3 rounded-2xl transition-colors duration-400',
+                                       'hover:bg-white/5' => ! $active,
+                                       'bg-white/10' => $active,
+                                   ])
+                                   style="transition-delay: {{ $i * 35 }}ms"
+                                   :style="open ? '' : 'transition-delay: 0ms'"
+                                   @if($active) aria-current="page" @endif>
+                                    <span @class([
+                                        'font-serif text-lg',
+                                        'text-jp-cream' => ! $active,
+                                        'text-jp-gold' => $active,
+                                    ])>{{ $link['label'] }}</span>
+                                    <svg class="w-4 h-4 text-jp-cream/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="mt-2 px-4 pt-3 border-t border-white/10 sm:hidden">
+                        @auth
+                            <a href="{{ route('dashboard') }}" @click="close()"
+                               class="block py-2 text-[11px] uppercase tracking-[0.22em] text-jp-gold">Dashboard</a>
+                        @else
+                            <a href="{{ route('login') }}" @click="close()"
+                               class="block py-2 text-[11px] uppercase tracking-[0.22em] text-jp-gold">Sign in</a>
+                        @endauth
                     </div>
-                    <div class="w-px h-10 bg-white/5 hidden md:block"></div>
-                    <p class="text-[10px] tracking-[0.4em] uppercase font-bold text-white/20">&copy; {{ date('Y') }} Sapientia Cabinet</p>
                 </div>
             </div>
         </div>
     </div>
 </nav>
+
+{{-- The island floats above the page, so content needs clearance. --}}
+<div class="h-24 sm:h-28" aria-hidden="true"></div>
