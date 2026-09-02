@@ -1,59 +1,110 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PUMA Informatics
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Institutional website and content platform for PUMA Informatics, President
+University — public showcase plus a full admin panel for news, events, projects,
+partners, the cabinet, student aspirations and elections.
 
-## About Laravel
+Production: **https://informatics.president.ac.id**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 12 / PHP 8.2
+- MySQL 8
+- Tailwind CSS 3, Alpine.js, Tiptap (rich-text editor), Vite
+- spatie/laravel-permission (RBAC), spatie/laravel-activitylog (audit trail),
+  spatie/laravel-medialibrary (uploads and image conversions)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Architecture
 
-## Learning Laravel
+```
+Controller → Service → Repository (interface + Eloquent) → Model
+                 ↑
+                DTO
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Controllers stay thin. Business rules live in `app/Services`, data access in
+`app/Repositories`, and `app/DTOs` carries validated input between them.
+Read-heavy public queries are cached through `App\Services\CacheService`, which
+uses cache tags on Redis and falls back to versioned keys on the database driver.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Modules
 
-## Laravel Sponsors
+| Public | Admin |
+|---|---|
+| Home, Newsroom, Events, Projects, Partners, Cabinet | CRUD for all of those |
+| Aspirations (public submission form) | Aspiration triage |
+| Voting booth | Voting sessions and candidates |
+| `sitemap.xml` | Users, roles, invitations, media, activity log, cache |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Access control
 
-### Premium Partners
+Roles are defined in `database/seeders/RolesAndPermissionsSeeder.php`, which is
+the **single source of truth** for the permission matrix and is safe to re-run.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+| Role | Scope |
+|---|---|
+| Super Admin | everything, via the `Gate::before` hook in `AppServiceProvider` |
+| Admin | everything except `view.security_logs` and `manage.audit_retention` |
+| Editor | news, events, projects, partners, media, activity log |
+| Moderator | aspirations |
+| Viewer / User | no admin access |
 
-## Contributing
+Enforcement happens in three layers: a role gate on the admin route group, a
+`permission:` middleware per module in `routes/web.php`, and `authorize()` in
+each FormRequest. Adding a new permission means adding it to the seeder and
+re-running `php artisan db:seed --force`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Local setup
 
-## Code of Conduct
+Requires PHP 8.2+, Composer, Node 20+, MySQL 8. On Windows, Laragon bundles all
+four — step-by-step instructions, including the corporate-proxy TLS workaround
+that breaks `composer install` and `npm install`, are in
+**[LOCAL_SETUP.md](LOCAL_SETUP.md)**.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Short version:
 
-## Security Vulnerabilities
+```bash
+composer install && cp .env.example .env && php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Point `DB_*` at a local MySQL database, then:
 
-## License
+```bash
+php artisan migrate --seed && npm install && npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The seeder creates a Super Admin. Locally it defaults to `admin@puma.it` /
+`password`; override with `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. In
+production a blank `ADMIN_PASSWORD` aborts the seed.
+
+Run everything (server, queue, logs, Vite) in one command:
+
+```bash
+composer dev
+```
+
+Local diagnostics for service connectivity: `http://localhost:8000/dev/health`.
+
+## Tests
+
+```bash
+php artisan test
+```
+
+Tests use an in-memory SQLite database, so they need no local MySQL setup.
+
+## Deployment
+
+The site runs on cPanel. Two things differ from a normal Laravel deploy and will
+break the site if missed:
+
+1. **`npm run build` must be run on the server** (via cPanel's Node.js toolchain)
+   after every front-end change. `public/build/` is gitignored, and Blade's
+   `@vite` throws without the generated manifest.
+2. **The queue runs from cron**, not Supervisor. Without that cron entry,
+   uploaded images never get their conversions.
+
+Full instructions: [DEPLOYMENT.md](DEPLOYMENT.md) ·
+Go-live checks: [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) ·
+Architecture notes: [DOCUMENTATION.md](DOCUMENTATION.md) ·
+Local dev: [LOCAL_SETUP.md](LOCAL_SETUP.md)

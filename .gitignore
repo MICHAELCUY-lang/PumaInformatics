@@ -1,5 +1,10 @@
 *.log
 .DS_Store
+# Regenerated on demand with `php artisan ide-helper:generate` — ~950 KB of
+# machine-written stubs that only churn the diff if tracked.
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
 .env
 .env.backup
 .env.production
@@ -13,6 +18,8 @@
 /.zed
 /auth.json
 /node_modules
+# Built on the server via cPanel's Node.js toolchain (see DEPLOYMENT.md §5),
+# so compiled assets stay out of the repo.
 /public/build
 /public/hot
 /public/storage

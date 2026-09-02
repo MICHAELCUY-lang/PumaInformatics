@@ -5,6 +5,13 @@
 
     RewriteEngine On
 
+    # Force HTTPS. cPanel AutoSSL terminates TLS at Apache, so HTTPS is the
+    # reliable signal here. Comment this block out only while the certificate
+    # for informatics.president.ac.id is still being issued.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -23,3 +30,18 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    # HSTS: enable only once HTTPS is confirmed working, it is hard to undo.
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Never serve dotfiles (.env, .git config fragments) even if one is ever copied
+# into the document root by mistake.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

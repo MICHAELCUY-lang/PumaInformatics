@@ -1,122 +1,314 @@
-# PUMA IT Platform - Deployment Guide
+# Deployment — cPanel · informatics.president.ac.id
 
-This document outlines the steps required to deploy the PUMA IT platform to a production environment.
+Target environment: shared cPanel hosting, Apache, MySQL, no root access, no
+Supervisor. Every step below is doable from the cPanel UI plus **Terminal**.
 
-## 1. Server Requirements
+If your plan has no Terminal, ask the hosting admin to enable it — Composer and
+`php artisan` are required. Everything else can be done through File Manager.
 
-- PHP 8.2 or higher
-- Composer
-- MySQL 8.0+ or PostgreSQL
-- Redis (for caching and queues)
-- Node.js & NPM (for asset compilation if not pre-built)
-- Supervisor (for Horizon/Queue workers)
+---
 
-## 2. Environment Setup
+## 1. Requirements checklist
 
-1. Clone the repository to the production server.
-2. Run `composer install --optimize-autoloader --no-dev`.
-3. Copy `.env.example` to `.env` and configure the environment variables:
-   ```env
-   APP_ENV=production
-   APP_DEBUG=false
-   APP_URL=https://your-production-url.com
+Set in **cPanel → Select PHP Version**:
 
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=puma_it
-   DB_USERNAME=your_db_user
-   DB_PASSWORD=your_db_password
+| Item | Value |
+|---|---|
+| PHP | 8.2 or 8.3 |
+| Extensions | `bcmath` `ctype` `curl` `dom` `exif` `fileinfo` `gd` `intl` `mbstring` `openssl` `pdo_mysql` `tokenizer` `xml` `zip` |
+| `memory_limit` | 256M or higher (Composer needs it) |
+| `upload_max_filesize` / `post_max_size` | at least 12M — the media uploader accepts 10MB files |
 
-   CACHE_STORE=redis
-   QUEUE_CONNECTION=redis
-   SESSION_DRIVER=redis
+`gd` is enough; `imagick` is optional. Redis is usually absent on shared plans —
+the shipped config uses the database driver, which needs nothing extra.
 
-   REDIS_CLIENT=phpredis
-   REDIS_HOST=127.0.0.1
-   REDIS_PASSWORD=null
-   REDIS_PORT=6379
-   ```
-4. Generate the application key:
-   ```bash
-   php artisan key:generate
-   ```
+---
 
-## 3. Storage and Permissions
+## 2. Directory layout
 
-Ensure the `storage` and `bootstrap/cache` directories are writable by the web server (e.g., `www-data`).
+Account facts this guide is written against:
+
+| | |
+|---|---|
+| cPanel user | `infm2327` |
+| Home directory | `/home/infm2327` |
+| Primary domain | `informatics.president.ac.id` (**not** a subdomain) |
+| Shared IP | `202.10.43.181` |
+| SSL | already active |
+
+Because the site is the account's **primary domain**, its document root is fixed
+at `/home/infm2327/public_html`. That matters: cloning the repository straight
+into `public_html` would publish `.env`, `app/`, and `storage/logs/` to the open
+internet. Only Laravel's `public/` may ever be web-reachable.
+
+Target layout:
+
+```
+/home/infm2327/
+├── informatics/          ← the repository lives here, above the web root
+│   ├── app/  config/  routes/  storage/  vendor/
+│   ├── .env              ← unreachable from the web
+│   └── public/           ← the only web-exposed directory
+└── public_html  ->  /home/infm2327/informatics/public      (symlink)
+```
+
+### Preferred: point the document root at `public/`
+
+cPanel → **Domains** → click `informatics.president.ac.id`. If a **Document
+Root** field is editable, set it to `/home/infm2327/informatics/public` and skip
+the symlink entirely. Some hosts lock this for the primary domain.
+
+### Fallback: replace `public_html` with a symlink
+
+Run this only after step 3 has put the code in `~/informatics`. Check what is in
+`public_html` first — do not delete a live site by reflex:
+
 ```bash
+ls -la ~/public_html
+```
+
+If it holds nothing you need (a default cPanel placeholder page, or it is empty),
+move it aside rather than deleting it, then link:
+
+```bash
+mv ~/public_html ~/public_html.bak && ln -s ~/informatics/public ~/public_html
+```
+
+Verify the link resolves:
+
+```bash
+ls -la ~/ | grep public_html && ls ~/public_html/index.php
+```
+
+Once the site is confirmed working you can remove `~/public_html.bak`.
+
+> If Apache returns 403 after this, the host disallows symlinked document roots.
+> In that case ask support to set the document root for you — that is the
+> supported path, and it is a one-line change on their side.
+
+DNS and SSL are already done: the domain resolves to this account and the
+certificate is active.
+
+---
+
+## 3. Get the code onto the server
+
+**Option A — cPanel Git Version Control** (recommended, makes updates one click):
+
+1. cPanel → Git™ Version Control → Create
+2. Clone URL: `https://github.com/MICHAELCUY-lang/PumaInformatics.git`
+3. Repository Path: `/home/infm2327/informatics`
+
+**Option B — upload a zip** via File Manager and extract to `/home/infm2327/informatics`.
+
+Either way, `vendor/` and `node_modules/` are not in the repo; step 4 handles
+`vendor/`, and step 5 explains the front-end assets.
+
+---
+
+## 4. Install PHP dependencies
+
+In Terminal:
+
+```bash
+cd ~/informatics && php -d memory_limit=-1 /usr/local/bin/composer install --no-dev --optimize-autoloader
+```
+
+If `composer` is not on the path, download it once:
+
+```bash
+cd ~/informatics && curl -sS https://getcomposer.org/installer | php && php -d memory_limit=-1 composer.phar install --no-dev --optimize-autoloader
+```
+
+---
+
+## 5. Front-end assets — built on the server
+
+Blade calls `@vite`, which needs `public/build/manifest.json`. Without it every
+page throws a Vite manifest exception, so this step is not optional.
+
+`public/build/` is gitignored and generated on the server.
+
+### 5a. Make Node available
+
+cPanel → **Setup Node.js App** → Create Application:
+
+- Node.js version: 20.x (or the highest offered)
+- Application root: `informatics`
+- Application URL: leave as is — this app is never actually served by Passenger,
+  we only want the Node toolchain and its virtualenv
+- Application startup file: leave blank
+
+Save. cPanel prints an "Enter to the virtual environment" command near the top
+of the page that looks like this:
+
+```
+source /home/infm2327/nodevenv/informatics/20/bin/activate && cd /home/infm2327/informatics
+```
+
+Copy that exact line — the numbers differ per account.
+
+### 5b. Build
+
+In Terminal, paste the activation line, then:
+
+```bash
+npm ci && npm run build
+```
+
+Confirm the output exists:
+
+```bash
+ls -la ~/informatics/public/build/manifest.json
+```
+
+`npm ci` needs `package-lock.json`, which is in the repo. If it complains about
+being out of sync with `package.json`, use `npm install` instead.
+
+Node is only needed at build time. Once `public/build/` exists, the running site
+is pure PHP — you can even stop the Node.js application afterwards.
+
+### 5c. Repeat when the front end changes
+
+Any deploy that touches `resources/css`, `resources/js`, `tailwind.config.js` or
+adds Blade classes needs 5b re-run. Everything else does not.
+
+> **Building on your laptop instead?** That works too — run `npm ci && npm run
+> build` locally and upload `public/build/` via File Manager. You do not need
+> PHP or Composer locally for this; Node alone is enough.
+
+---
+
+## 6. Database
+
+1. cPanel → MySQL® Databases → create a database and a user, then grant the user
+   **ALL PRIVILEGES** on it. cPanel prefixes both with the account name, so you
+   end up with something like `infm2327_informatics` / `infm2327_app`.
+   The account already shows one database — check whether it is already the right
+   one before creating a second, and do not point `.env` at a database that
+   belongs to something else.
+2. cPanel → File Manager → copy `.env.production.example` to `.env` (enable
+   "Show Hidden Files" first) and fill in every blank.
+
+Then:
+
+```bash
+cd ~/informatics && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force
+```
+
+`db:seed` runs `RolesAndPermissionsSeeder` (creates every permission the admin
+panel checks) and `AdminUserSeeder` (creates the Super Admin from `ADMIN_EMAIL`
+/ `ADMIN_PASSWORD`). It refuses to run in production if `ADMIN_PASSWORD` is
+blank. Demo content is skipped automatically in production.
+
+Both seeders are idempotent — safe to re-run after adding a new permission.
+
+---
+
+## 7. Storage
+
+```bash
+cd ~/informatics && php artisan storage:link
 chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
 ```
 
-Link the storage directory to public:
+If `storage:link` fails because symlinks are disabled on your plan, ask support
+to enable them. Do not work around it by moving uploads into `public/` — the
+Media Library resolves URLs through the symlink.
+
+---
+
+## 8. SSL
+
+Already done — the certificate for `informatics.president.ac.id` is active on
+this account. Just confirm that `.env` has `APP_URL=https://...` and
+`SESSION_SECURE_COOKIE=true`; the HTTPS redirect lives in `public/.htaccess`.
+
+If the certificate ever lapses, cPanel → SSL/TLS Status → run **AutoSSL**.
+
+---
+
+## 9. Cron — scheduler and queue
+
+cPanel → Cron Jobs. Add **both** entries at "Once Per Minute" (`* * * * *`):
+
+```
+/usr/local/bin/php /home/infm2327/informatics/artisan schedule:run >/dev/null 2>&1
+```
+
+```
+/usr/local/bin/php /home/infm2327/informatics/artisan queue:work --stop-when-empty --max-time=55 --tries=3 >/dev/null 2>&1
+```
+
+The second one replaces Supervisor: shared hosting kills long-running daemons,
+so instead a fresh worker starts each minute, drains the queue, and exits.
+Without it, **image conversions never run** — `QUEUE_CONVERSIONS_BY_DEFAULT` is
+true, so uploaded pictures would stay unprocessed.
+
+Confirm your PHP CLI path first with `which php` — on some servers it is
+`/usr/local/bin/ea-php82` instead.
+
+---
+
+## 10. Optimise
+
 ```bash
-php artisan storage:link
+cd ~/informatics && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
 ```
 
-## 4. Database Migration
+Re-run these after **every** `.env` or route change — a cached config ignores
+later edits to `.env`, which is the single most common "why isn't my change
+showing" problem on cPanel.
 
-Run the database migrations (this will also seed roles/permissions if configured in DatabaseSeeder):
+---
+
+## 11. Post-deploy verification
+
+| Check | Expected |
+|---|---|
+| `https://informatics.president.ac.id` | homepage renders **with styling** (unstyled or a Vite manifest error means step 5 was skipped) |
+| `/login` | Breeze login form, no browser popup |
+| Log in as Super Admin | lands on `/admin` |
+| `/admin/voting-sessions` → create, status **Active**, dates around today | session appears at `/voting` marked LIVE |
+| Cast a vote as a verified member | "Your vote has been securely recorded." |
+| Vote again | rejected as a double vote |
+| Upload an image in the article editor | thumbnail appears within a minute (proves the queue cron works) |
+| Register a new account | verification email arrives (proves SMTP works) |
+| `/sitemap.xml`, `/robots.txt` | both load |
+| `/up` | `200` health check |
+| `https://informatics.president.ac.id/../.env` and `/storage/logs` | not reachable |
+
+---
+
+## 12. Updating later
+
+With cPanel Git Version Control, click **Update from Remote**, then:
+
 ```bash
-php artisan migrate --force
+cd ~/informatics && php -d memory_limit=-1 composer install --no-dev --optimize-autoloader && php artisan migrate --force && php artisan db:seed --force && php artisan optimize
 ```
 
-## 5. Asset Compilation
+`db:seed` here is what rolls out newly added permissions.
 
-If you are not deploying pre-built assets, build them on the server:
-```bash
-npm install
-npm run build
-```
+---
 
-## 6. Performance Optimization
+## 13. Rollback
 
-Run Laravel's optimization commands to cache routes, views, configs, and events:
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-```
+1. `git checkout <previous-tag>` in the repository path (or restore the zip).
+2. `php artisan migrate:rollback --step=1` only if a migration was the problem.
+3. `composer install --no-dev --optimize-autoloader`
+4. `php artisan optimize`
 
-## 7. Queue and Scheduler Setup
+---
 
-### Scheduler
+## 14. Backups
 
-Add the following Cron entry to your server to run the Laravel scheduler every minute:
-```cron
-* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
-```
+cPanel → Backup → schedule a full account backup, and separately verify that
+these are included:
 
-### Queue Worker (Horizon / Supervisor)
+- the MySQL database
+- `storage/app/public` (every uploaded image and aspiration attachment)
+- `.env` (store it in a password manager, not in the backup archive alone)
 
-If using Laravel Horizon, install and configure it, then set up a Supervisor process to keep it running.
-
-**Example Supervisor Config (`/etc/supervisor/conf.d/horizon.conf`):**
-```ini
-[program:horizon]
-process_name=%(program_name)s
-command=php /path-to-your-project/artisan horizon
-autostart=true
-autorestart=true
-user=www-data
-redirect_stderr=true
-stdout_logfile=/path-to-your-project/storage/logs/horizon.log
-stopwaitsecs=3600
-```
-Update Supervisor:
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start horizon
-```
-
-## 8. Rollback Process
-
-If a deployment fails:
-1. Revert to the previous code version (via Git or symlink).
-2. Run `php artisan migrate:rollback --step=1` if migrations were part of the failure.
-3. Run `composer install --optimize-autoloader --no-dev`.
-4. Re-run optimization commands: `php artisan optimize`.
-5. Restart the queue workers: `php artisan queue:restart`.
+Download a copy off-server at least monthly. A cPanel account backup that only
+lives on the same cPanel account is not a backup.
