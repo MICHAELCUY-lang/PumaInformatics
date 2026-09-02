@@ -23,7 +23,11 @@ Artisan::command('inspire', function () {
 // arrives. Without this the Scheduled option in the editors never takes effect.
 Schedule::command('content:publish-scheduled')
     ->everyFiveMinutes()
-    ->withoutOverlapping();
+    ->withoutOverlapping()
+    // Writes a line every five minutes, which is the only practical way to
+    // confirm from inside the app that the cPanel cron entry is actually firing.
+    // Safe to drop once the schedule is known to be running.
+    ->appendOutputTo(storage_path('logs/schedule.log'));
 
 // Temporary Tiptap uploads expire after 24h; sweep them hourly so abandoned
 // editor images don't accumulate on disk forever.
