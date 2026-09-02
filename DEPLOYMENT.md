@@ -26,6 +26,15 @@ the shipped config uses the database driver, which needs nothing extra.
 
 ## 2. Directory layout
 
+> **Already deployed. For routine updates just run:**
+>
+> ```bash
+> bash ~/informatics/bin/deploy.sh
+> ```
+>
+> That script encodes every host quirk described below. Read the rest of this
+> document when something breaks or when rebuilding the account from scratch.
+
 Account facts this guide is written against:
 
 | | |
@@ -37,54 +46,41 @@ Account facts this guide is written against:
 | SSL | already active |
 
 Because the site is the account's **primary domain**, its document root is fixed
-at `/home/infm2327/public_html`. That matters: cloning the repository straight
-into `public_html` would publish `.env`, `app/`, and `storage/logs/` to the open
-internet. Only Laravel's `public/` may ever be web-reachable.
-
-Target layout:
+at `/home/infm2327/public_html`. Symlinking `public_html` to the app's `public/`
+is not an option either — this host disables PHP's `symlink()`. So the layout in
+use is the classic shared-hosting split: the application lives above the web
+root, and `public_html` holds a small bridge plus the static assets.
 
 ```
 /home/infm2327/
-├── informatics/          ← the repository lives here, above the web root
-│   ├── app/  config/  routes/  storage/  vendor/
-│   ├── .env              ← unreachable from the web
-│   └── public/           ← the only web-exposed directory
-└── public_html  ->  /home/infm2327/informatics/public      (symlink)
+├── informatics/            ← the repository, above the web root
+│   ├── app/ config/ routes/ vendor/
+│   ├── .env                ← unreachable from the web (mode 600)
+│   ├── bin/deploy.sh
+│   └── public/build/       ← build output, COPIED to the docroot on deploy
+└── public_html/            ← DOCUMENT ROOT
+    ├── index.php           ← bridge: requires /home/infm2327/informatics
+    ├── .htaccess           ← repo version + cPanel's PHP handler block
+    ├── build/              ← copy of informatics/public/build
+    ├── robots.txt logo.png ← copies of informatics/public/*
+    ├── storage/            ← PUBLIC_DISK_ROOT, where uploads are written
+    └── .well-known/        ← leave alone, AutoSSL uses it
 ```
 
-### Preferred: point the document root at `public/`
+Two consequences that cause real, confusing breakage if forgotten:
 
-cPanel → **Domains** → click `informatics.president.ac.id`. If a **Document
-Root** field is editable, set it to `/home/infm2327/informatics/public` and skip
-the symlink entirely. Some hosts lock this for the primary domain.
+**The docroot is not the app's `public/`.** Blade's `@vite` emits `/build/...`
+URLs, which Apache resolves inside `public_html`. Rebuilding assets in
+`informatics/public/build` without copying them across leaves the site serving
+the *previous* build. The symptom is subtle: unchanged files keep working
+because Vite's content hashes are unchanged, so typically only the CSS 404s
+while the JS still loads.
 
-### Fallback: replace `public_html` with a symlink
+**The docroot `.htaccess` must keep cPanel's handler block.** That block is what
+selects PHP 8.2; without it the site falls back to PHP 7.4 and the app will not
+boot. `bin/deploy.sh` re-appends it automatically after replacing the file.
 
-Run this only after step 3 has put the code in `~/informatics`. Check what is in
-`public_html` first — do not delete a live site by reflex:
-
-```bash
-ls -la ~/public_html
-```
-
-If it holds nothing you need (a default cPanel placeholder page, or it is empty),
-move it aside rather than deleting it, then link:
-
-```bash
-mv ~/public_html ~/public_html.bak && ln -s ~/informatics/public ~/public_html
-```
-
-Verify the link resolves:
-
-```bash
-ls -la ~/ | grep public_html && ls ~/public_html/index.php
-```
-
-Once the site is confirmed working you can remove `~/public_html.bak`.
-
-> If Apache returns 403 after this, the host disallows symlinked document roots.
-> In that case ask support to set the document root for you — that is the
-> supported path, and it is a one-line change on their side.
+`index.php` is also the rollback switch — see §13.
 
 DNS and SSL are already done: the domain resolves to this account and the
 certificate is active.
@@ -317,10 +313,33 @@ cd ~/informatics && php -d memory_limit=-1 composer install --no-dev --optimize-
 
 ## 13. Rollback
 
-1. `git checkout <previous-tag>` in the repository path (or restore the zip).
-2. `php artisan migrate:rollback --step=1` only if a migration was the problem.
-3. `composer install --no-dev --optimize-autoloader`
-4. `php artisan optimize`
+### Back to the pre-cutover deployment (fastest, one file)
+
+The previous application still sits untouched in `~/puma-informatics`, and the
+bridge that selects between them is a single file:
+
+```bash
+cp ~/public_html/index.php.bak-old-deployment ~/public_html/index.php
+```
+
+That is the whole rollback — the old tree has its own `.env` and `vendor/`.
+Note the old build assets are gone from `public_html/build`, so the old site
+would render unstyled; restore `~/public_html/.htaccess.bak-old-deployment` too
+if you need it exactly as it was. Keep `~/puma-informatics` until you are
+confident; delete it only afterwards.
+
+### Back one commit on the current deployment
+
+```bash
+cd ~/informatics && git log --oneline -5
+```
+
+```bash
+cd ~/informatics && git reset --hard <commit> && bash bin/deploy.sh
+```
+
+Only add `php artisan migrate:rollback --step=1` if a migration was the problem;
+the migrations here are additive, so that is rarely what you want.
 
 ---
 
