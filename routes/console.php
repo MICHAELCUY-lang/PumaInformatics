@@ -4,6 +4,7 @@ use App\Jobs\CleanupOldActivityLogs;
 use App\Jobs\CleanupOrphanedMedia;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -14,31 +15,41 @@ Artisan::command('inspire', function () {
 |--------------------------------------------------------------------------
 | Scheduled Tasks
 |--------------------------------------------------------------------------
-| Driven by the single cPanel cron entry:
-|   php /home/<user>/informatics/artisan schedule:run
-| running every minute. Without that entry none of this fires.
+| Driven by a single cPanel cron entry, every minute:
+|   * * * * * /usr/local/bin/ea-php82 /home/infm2327/informatics/artisan schedule:run >/dev/null 2>&1
+| Note ea-php82 rather than php — /usr/local/bin/php is PHP 7.4 on this host.
+|
+| IMPORTANT: do not use Schedule::command() here. Laravel runs command events
+| as sub-processes through Symfony Process, and the host has proc_open in
+| disable_functions, so every such task dies with "The Process class relies on
+| proc_open". schedule:run itself still fires, so the failure is silent.
+|
+| Schedule::call() and Schedule::job() both execute in-process and are safe.
+| For the same reason ->appendOutputTo() is unavailable (it belongs to command
+| events), so the heartbeat below is written through the logger instead.
 */
 
-// Turn "Scheduled" articles and events into published ones once their date
-// arrives. Without this the Scheduled option in the editors never takes effect.
-Schedule::command('content:publish-scheduled')
+// Promote "Scheduled" articles and events once their date arrives. Doubles as
+// the heartbeat proving the cron entry is alive.
+Schedule::call(function () {
+    Artisan::call('content:publish-scheduled');
+
+    Log::channel('single')->info('[schedule] '.trim(Artisan::output()));
+})
     ->everyFiveMinutes()
-    ->withoutOverlapping()
-    // Writes a line every five minutes, which is the only practical way to
-    // confirm from inside the app that the cPanel cron entry is actually firing.
-    // Safe to drop once the schedule is known to be running.
-    ->appendOutputTo(storage_path('logs/schedule.log'));
+    ->name('content:publish-scheduled')
+    ->withoutOverlapping();
 
 // Temporary Tiptap uploads expire after 24h; sweep them hourly so abandoned
 // editor images don't accumulate on disk forever.
 Schedule::job(new CleanupOrphanedMedia)
     ->hourly()
-    ->withoutOverlapping()
-    ->name('media:cleanup-orphaned');
+    ->name('media:cleanup-orphaned')
+    ->withoutOverlapping();
 
 // Prune non-critical activity logs older than a year (auth/security/governance
 // logs and user/role subjects are retained by the job itself).
 Schedule::job(new CleanupOldActivityLogs)
     ->weeklyOn(1, '03:00')
-    ->withoutOverlapping()
-    ->name('activity-log:prune');
+    ->name('activity-log:prune')
+    ->withoutOverlapping();
