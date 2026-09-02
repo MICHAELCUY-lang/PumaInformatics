@@ -1,4 +1,14 @@
-<x-guest-layout>
+<x-guest-layout title="New password">
+    <header class="mb-10">
+        <p class="text-[10px] uppercase tracking-[0.45em] text-jp-gold font-semibold mb-4">
+            Members Area
+        </p>
+        <h1 class="font-serif text-4xl text-jp-indigo mb-3">Choose a new password</h1>
+        <p class="text-jp-indigo/50 font-light leading-relaxed">
+            Pick something long, and different from your other accounts.
+        </p>
+    </header>
+
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
 

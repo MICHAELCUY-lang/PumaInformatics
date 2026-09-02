@@ -1,4 +1,14 @@
-<x-guest-layout>
+<x-guest-layout title="Create account">
+    <header class="mb-10">
+        <p class="text-[10px] uppercase tracking-[0.45em] text-jp-gold font-semibold mb-4">
+            Members Area
+        </p>
+        <h1 class="font-serif text-4xl text-jp-indigo mb-3">Create an account</h1>
+        <p class="text-jp-indigo/50 font-light leading-relaxed">
+            Verify your email afterwards to take part in an election.
+        </p>
+    </header>
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -40,7 +50,7 @@
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
+            <a class="underline text-sm text-jp-indigo/60 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-jp-gold/40" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
             </a>
 
