@@ -44,15 +44,18 @@
                      alt=""
                      fetchpriority="high"
                      class="absolute inset-0 w-full h-full object-cover object-center
-                            opacity-[0.16] grayscale-[0.75] contrast-[0.95]"
-                     style="mask-image: linear-gradient(100deg, transparent 0%, transparent 26%, rgba(0,0,0,0.55) 52%, rgba(0,0,0,0.95) 100%);
-                            -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 26%, rgba(0,0,0,0.55) 52%, rgba(0,0,0,0.95) 100%);">
+                            opacity-[0.55] grayscale-[0.30] contrast-[1.02]"
+                     style="mask-image: linear-gradient(100deg, transparent 0%, transparent 22%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,1) 68%);
+                            -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 22%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,1) 68%);">
             </picture>
 
-            {{-- Cream veil over the photograph: pulls it into the page's warmth
-                 and lifts the whole canvas back toward the site's base tone. --}}
-            <div class="absolute inset-0 bg-jp-cream/45"></div>
-            <div class="absolute inset-0 bg-gradient-to-r from-jp-cream via-jp-cream/70 to-transparent"></div>
+            {{-- One veil, not two. The first pass stacked a flat 45% cream over
+                 a 16% photograph and the result was invisible — technically
+                 present, practically absent. Only the left-to-right gradient
+                 survives, and only to protect the headline: it is opaque cream
+                 where the type sits and clears completely by the midpoint, so
+                 the photograph reads at full strength on the right. --}}
+            <div class="absolute inset-0 bg-gradient-to-r from-jp-cream via-jp-cream/75 to-transparent"></div>
 
             {{-- Warm wash: gold from the lower left, cool blue from the upper right --}}
             <div class="absolute -top-56 -right-56 w-[60rem] h-[60rem] rounded-full blur-[130px]
@@ -63,15 +66,16 @@
             {{-- Floral field, the same motif the rest of the site now carries --}}
             <div class="absolute inset-0 jp-seigaiha opacity-40"></div>
 
-            {{-- Two oversized blooms, drifting slowly. Sitting to the right, they
-                 give the composition weight opposite the type without covering it. --}}
-            <x-public.bloom class="absolute -right-24 top-[8%] w-[34rem] h-[34rem] text-sapientia-primary opacity-[0.10] animate-lotus-spin" />
-            <x-public.bloom class="absolute right-[16%] -bottom-40 w-[26rem] h-[26rem] text-jp-gold opacity-[0.12]" rotate="18" :petals="8" />
+            {{-- Blooms moved left, onto the cream side. They used to sit right,
+                 which is now where the photograph reads at full strength — two
+                 competing focal points in the same place. Here they decorate the
+                 empty space beneath the type instead. --}}
+            <x-public.bloom class="absolute -left-32 bottom-[-8rem] w-[30rem] h-[30rem] text-jp-gold opacity-[0.10] animate-lotus-spin" />
+            <x-public.bloom class="absolute left-[26%] -top-32 w-[20rem] h-[20rem] text-sapientia-primary opacity-[0.07]" rotate="18" :petals="8" />
 
-            {{-- A single hairline arc, the one gesture kept from the old artwork --}}
-            <svg class="absolute right-0 top-0 h-full w-1/2 text-sapientia-primary/15" viewBox="0 0 600 800" fill="none" preserveAspectRatio="xMaxYMid slice">
+            {{-- A hairline arc tracing the seam where cream meets photograph --}}
+            <svg class="absolute right-0 top-0 h-full w-1/2 text-jp-cream/40" viewBox="0 0 600 800" fill="none" preserveAspectRatio="xMaxYMid slice">
                 <path d="M620 -40C420 140 520 380 340 520C180 646 240 760 120 860" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M700 40C500 220 600 460 420 600C260 726 320 840 200 940" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
             </svg>
         </div>
 
