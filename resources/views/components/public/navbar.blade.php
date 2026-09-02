@@ -174,5 +174,6 @@
     </div>
 </nav>
 
-{{-- The island floats above the page, so content needs clearance. --}}
-<div class="h-24 sm:h-28" aria-hidden="true"></div>
+{{-- No spacer here: the bar was already fixed, so every page carries its own
+     top padding (pt-20 on the hero, pt-24/32 on inner pages). Adding one would
+     double the gap. --}}
