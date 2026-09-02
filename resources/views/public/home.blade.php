@@ -35,7 +35,7 @@
                         bg-gradient-to-tr from-jp-gold/14 via-jp-gold-light/8 to-transparent"></div>
 
             {{-- Floral field, the same motif the rest of the site now carries --}}
-            <div class="absolute inset-0 jp-seigaiha opacity-60"></div>
+            <div class="absolute inset-0 jp-seigaiha opacity-40"></div>
 
             {{-- Two oversized blooms, drifting slowly. Sitting to the right, they
                  give the composition weight opposite the type without covering it. --}}
