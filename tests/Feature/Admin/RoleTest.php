@@ -6,7 +6,8 @@ use Spatie\Permission\Models\Role;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('super admin can access admin dashboard', function () {
-    $role = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+    // The role already exists: TestCase seeds RolesAndPermissionsSeeder.
+    $role = Role::findByName('Super Admin');
     $user = User::factory()->create(['status' => 'active']);
     $user->assignRole($role);
 

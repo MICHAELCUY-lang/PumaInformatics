@@ -22,12 +22,11 @@ class SampleDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get or Create Super Admin
-        $admin = User::where('email', 'admin@puma.it')->first() ?? User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'admin@puma.it',
-            'password' => bcrypt('password'),
-        ]);
+        // AdminUserSeeder owns the Super Admin account; fall back to any user so
+        // this seeder can still run standalone in a scratch database.
+        $admin = User::where('email', env('ADMIN_EMAIL', 'admin@puma.it'))->first()
+            ?? User::first()
+            ?? User::factory()->create(['name' => 'Content Author']);
 
         // 1. Cabinet Seeding
         $cabinet = Cabinet::create([
