@@ -18,67 +18,41 @@
     <!-- Hero — Sapientia Concept -->
     {{-- pt clears the floating island, which is ~84px tall including its offset --}}
     <section class="relative min-h-[88vh] flex items-center pt-28 sm:pt-32 pb-16 overflow-hidden border-b border-sapientia-primary/10">
-        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-            <div class="absolute -top-40 -right-40 w-[70rem] h-[70rem] bg-gradient-to-br from-sapientia-primary/18 via-sapientia-secondary/10 to-transparent blur-[120px] rounded-full"></div>
-            <div class="absolute -bottom-40 -left-40 w-[55rem] h-[55rem] bg-gradient-to-tr from-jp-gold/10 via-sapientia-light/10 to-transparent blur-[140px] rounded-full"></div>
-            <div class="absolute inset-0 opacity-[0.55] mix-blend-multiply bg-topo"></div>
+        {{-- Hero canvas.
 
-            <div class="absolute inset-0 opacity-[0.95]" :style="`transform: translateY(${scrollY * 0.12}px)`">
-                <svg class="w-full h-full" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-                    <defs>
-                        <linearGradient id="sapientiaInk" x1="560" y1="40" x2="1120" y2="720" gradientUnits="userSpaceOnUse">
-                            <stop offset="0" stop-color="#2D5A8A" stop-opacity="0.92" />
-                            <stop offset="0.55" stop-color="#1B3A5C" stop-opacity="0.98" />
-                            <stop offset="1" stop-color="#0F2744" stop-opacity="1" />
-                        </linearGradient>
-                        <path id="inkBlob" d="M794.5 70.5C932.5 28.5 1102 116.5 1134.5 264.5C1167 412.5 1144 561.5 1006 640C868 718.5 712 676 657.5 540C603 404 514 364 560 232.5C606 101 700.5 99.5 794.5 70.5Z"/>
-                        <clipPath id="inkClip">
-                            <use href="#inkBlob" />
-                        </clipPath>
-                    </defs>
+             Deliberately light: the previous layer put a full-opacity dark ink
+             blob over the right half, which the display type ran under and the
+             intro paragraph disappeared into. Nothing here exceeds ~12% opacity,
+             so text stays legible wherever it lands.
 
-                    <use href="#inkBlob" fill="url(#sapientiaInk)"/>
+             Three layers only — a warm wash, a floral field, and two blooms —
+             instead of the five that were fighting each other. --}}
+        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            {{-- Warm wash: gold from the lower left, cool blue from the upper right --}}
+            <div class="absolute -top-56 -right-56 w-[60rem] h-[60rem] rounded-full blur-[130px]
+                        bg-gradient-to-br from-sapientia-primary/12 via-sapientia-secondary/8 to-transparent"></div>
+            <div class="absolute -bottom-64 -left-56 w-[52rem] h-[52rem] rounded-full blur-[150px]
+                        bg-gradient-to-tr from-jp-gold/14 via-jp-gold-light/8 to-transparent"></div>
 
-                    <g clip-path="url(#inkClip)" opacity="0.35">
-                        <g stroke="#E3F2FD" stroke-opacity="0.7" stroke-width="1.2" fill="none">
-                            <path d="M560 210C700 160 820 240 960 190C1090 145 1180 240 1260 200"/>
-                            <path d="M520 260C680 200 820 310 980 250C1130 206 1220 320 1320 275"/>
-                            <path d="M500 312C660 252 830 380 1010 318C1165 265 1255 410 1360 360"/>
-                            <path d="M520 368C690 312 860 448 1040 390C1195 340 1265 520 1380 468"/>
-                            <path d="M560 430C740 380 900 520 1080 470C1225 430 1305 610 1415 560"/>
-                            <path d="M610 492C780 444 955 585 1130 540C1265 506 1335 660 1430 640"/>
-                            <path d="M660 555C820 514 1010 650 1180 620C1305 598 1380 710 1470 705"/>
-                            <path d="M710 620C870 590 1040 705 1210 690C1340 678 1430 740 1520 748"/>
-                        </g>
-                        <g stroke="#0F2744" stroke-opacity="0.28" stroke-width="1.3" fill="none">
-                            <path d="M560 235C700 186 830 268 980 220C1115 176 1200 266 1280 235"/>
-                            <path d="M520 338C680 282 845 412 1015 350C1165 300 1260 452 1365 410"/>
-                            <path d="M585 458C760 410 930 560 1105 510C1250 470 1330 635 1425 610"/>
-                            <path d="M670 585C835 550 1025 690 1200 675C1330 664 1410 740 1495 750"/>
-                        </g>
-                    </g>
+            {{-- Floral field, the same motif the rest of the site now carries --}}
+            <div class="absolute inset-0 jp-seigaiha opacity-60"></div>
 
-                    <g opacity="0.9" stroke="#0F2744" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M260 422C232 392 214 356 218 324C238 344 252 372 260 422C268 372 282 344 302 324C306 356 288 392 260 422Z"/>
-                        <path d="M260 422C216 402 190 368 194 324C222 344 246 376 260 422Z"/>
-                        <path d="M260 422C304 402 330 368 326 324C298 344 274 376 260 422Z"/>
-                        <path d="M260 422C238 396 224 372 224 348C242 362 254 384 260 422Z"/>
-                        <path d="M260 422C282 396 296 372 296 348C278 362 266 384 260 422Z"/>
-                        <path d="M212 432C238 456 282 456 308 432"/>
-                        <path d="M338 342C368 330 396 334 418 352"/>
-                        <path d="M160 352C132 340 110 344 92 360"/>
-                        <path d="M420 360C450 374 476 400 488 430"/>
-                        <path d="M90 368C66 386 50 410 44 440"/>
-                    </g>
-                </svg>
-            </div>
+            {{-- Two oversized blooms, drifting slowly. Sitting to the right, they
+                 give the composition weight opposite the type without covering it. --}}
+            <x-public.bloom class="absolute -right-24 top-[8%] w-[34rem] h-[34rem] text-sapientia-primary opacity-[0.10] animate-lotus-spin" />
+            <x-public.bloom class="absolute right-[16%] -bottom-40 w-[26rem] h-[26rem] text-jp-gold opacity-[0.12]" rotate="18" :petals="8" />
+
+            {{-- A single hairline arc, the one gesture kept from the old artwork --}}
+            <svg class="absolute right-0 top-0 h-full w-1/2 text-sapientia-primary/15" viewBox="0 0 600 800" fill="none" preserveAspectRatio="xMaxYMid slice">
+                <path d="M620 -40C420 140 520 380 340 520C180 646 240 760 120 860" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M700 40C500 220 600 460 420 600C260 726 320 840 200 940" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
+            </svg>
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 w-full" x-data="{ shown: false }" x-init="setTimeout(() => shown = true, 100)">
             <div class="lg:grid lg:grid-cols-12 gap-16 items-center">
-                {{-- 7 of 12 columns, not 10: the ink blob occupies the right of
-                     the canvas, and at 10 the display type ran underneath it and
-                     lost contrast against the dark shape. --}}
+                {{-- 7 of 12 columns: leaves the right third to the artwork so the
+                     display type never has to compete with it for contrast. --}}
                 <div class="lg:col-span-7">
                     <!-- Subtle small text badge -->
                     <div class="mb-8 reveal" :class="shown ? 'active' : ''">
