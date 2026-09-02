@@ -1,4 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+{{-- The XML declaration is prepended by SitemapController, NOT written here.
+     The production host runs with short_open_tag=On, where PHP's tokenizer
+     reads any "<?" as an open tag — including one inside a Blade echo — so
+     Blade never compiles the rest of the file and it dies with
+     "syntax error, unexpected identifier version". Keep this template free of
+     the "<?" character sequence. --}}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>{{ route('public.home') }}</loc>
