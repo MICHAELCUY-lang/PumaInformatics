@@ -37,7 +37,13 @@ export default {
                     primary: '#448AFF',
                     secondary: '#82B1FF',
                     light: '#E3F2FD',
-                    deep: '#1565C0',
+                    // Was #1565C0, a saturated Material blue. The site ran two
+                    // competing dark palettes — that bright blue on 19 surfaces
+                    // and 46 text usages, against the muted jp navy everywhere
+                    // else — so the cabinet section and footer read as belonging
+                    // to a different design. Aligned to the jp navy: one dark
+                    // colour, changed at the token so no template needed editing.
+                    deep: '#1B3A5C',
                     cream: '#F8FBFF',
                     mist: '#EEF5FF',
                 },
