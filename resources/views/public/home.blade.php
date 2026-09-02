@@ -193,19 +193,6 @@
     </section>
     @endif
 
-    <!-- Section Divider (Sapientia Star) -->
-    <div class="py-16 flex justify-center items-center opacity-20">
-        <div class="w-px h-24 bg-gradient-to-b from-transparent via-sapientia-deep to-transparent"></div>
-        <svg class="w-12 h-12 mx-8 text-sapientia-primary" viewBox="0 0 100 100" fill="none">
-            <g transform="translate(50,50) scale(0.4)">
-                @for($i = 0; $i < 8; $i++)
-                <path d="M0,0 Q15,-30 0,-60 Q-15,-30 0,0" fill="currentColor" transform="rotate({{ $i * 45 }})" />
-                @endfor
-            </g>
-        </svg>
-        <div class="w-px h-24 bg-gradient-to-b from-transparent via-sapientia-deep to-transparent"></div>
-    </div>
-
     <!-- Project Archive -->
     @if($featuredProjects->isNotEmpty())
     <section id="projects" class="py-24 relative overflow-hidden bg-sapientia-cream bg-striped-vertical">
