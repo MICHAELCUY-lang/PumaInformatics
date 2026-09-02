@@ -50,17 +50,15 @@ class GlobalMedia extends Model implements HasMedia
     public function registerMediaConversions(Media $media = null): void
     {
         // Tiptap Editor / Editorial responsive size (WebP forced)
-        $this->addMediaConversion('editorial')
+        $this->addMediaConversion('editorial')->nonOptimized()
              ->width(1024)
              ->format('webp')
-             ->optimize()
              ->nonQueued(); // For immediate return to Tiptap
 
-        $this->addMediaConversion('thumbnail')
+        $this->addMediaConversion('thumbnail')->nonOptimized()
              ->width(300)
              ->height(300)
              ->format('webp')
-             ->optimize()
              ->nonQueued();
     }
 }

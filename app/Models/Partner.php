@@ -46,12 +46,12 @@ class Partner extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        $this->addMediaConversion('standard')
+        $this->addMediaConversion('standard')->nonOptimized()
               ->width(400)
               ->format('webp')
               ->nonQueued(); // Fast enough for logos
 
-        $this->addMediaConversion('retina')
+        $this->addMediaConversion('retina')->nonOptimized()
               ->width(800)
               ->format('webp')
               ->nonQueued();

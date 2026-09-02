@@ -205,16 +205,39 @@ Both seeders are idempotent — safe to re-run after adding a new permission.
 
 ---
 
-## 7. Storage
+## 7. Storage — `storage:link` does not work on this host
+
+This account's PHP has `symlink` in `disable_functions`, so
+`php artisan storage:link` can never succeed. Verify for yourself with:
 
 ```bash
-cd ~/informatics && php artisan storage:link
-chmod -R 775 storage bootstrap/cache
+php -r 'echo ini_get("disable_functions"), PHP_EOL;'
 ```
 
-If `storage:link` fails because symlinks are disabled on your plan, ask support
-to enable them. Do not work around it by moving uploads into `public/` — the
-Media Library resolves URLs through the symlink.
+Instead, point the public disk directly at a directory inside the web root.
+`config/filesystems.php` reads `PUBLIC_DISK_ROOT` for exactly this:
+
+```env
+PUBLIC_DISK_ROOT=/home/infm2327/public_html/storage
+```
+
+Create it and lock down execution — anything in there is web-served, so a file
+that somehow lands with a `.php` extension must not be runnable:
+
+```bash
+mkdir -p ~/public_html/storage
+printf 'php_flag engine off\nOptions -Indexes -ExecCGI\nRemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8\nAddType text/plain .php .phtml\n' > ~/public_html/storage/.htaccess
+chmod -R 755 ~/informatics/storage ~/informatics/bootstrap/cache
+```
+
+Migrating uploads from an older deployment that copied the directory by hand:
+
+```bash
+cp -rn ~/puma-informatics/storage/app/public/. ~/public_html/storage/ 2>/dev/null; ls ~/public_html/storage | head
+```
+
+Do **not** ask support to enable `symlink` — it is disabled for good reason on
+shared hosting, and the approach above needs no privilege at all.
 
 ---
 

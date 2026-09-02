@@ -57,18 +57,17 @@ class Article extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        $this->addMediaConversion('hero')
+        $this->addMediaConversion('hero')->nonOptimized()
               ->width(1920)
               ->height(822)
-              ->format('webp')
-              ->withResponsiveImages();
+              ->format('webp');
 
-        $this->addMediaConversion('card')
+        $this->addMediaConversion('card')->nonOptimized()
               ->width(800)
               ->height(450)
               ->format('webp');
 
-        $this->addMediaConversion('og')
+        $this->addMediaConversion('og')->nonOptimized()
               ->width(1200)
               ->height(630)
               ->format('webp');

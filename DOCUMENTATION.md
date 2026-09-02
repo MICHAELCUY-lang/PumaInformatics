@@ -66,6 +66,45 @@ This document maintains a living record of architectural decisions, package inst
   `X-Forwarded-For`, defeating the vote and aspiration IP hashing and every rate
   limiter.
 
+## Production Host Restrictions (`disable_functions`)
+
+The cPanel account runs with a long `disable_functions` list. Check it any time
+something behaves oddly on the server but works locally:
+
+```bash
+php -r 'echo ini_get("disable_functions"), PHP_EOL;'
+```
+
+Three entries shape the application's design:
+
+- **`symlink`** — `php artisan storage:link` can never succeed. The public disk
+  instead writes straight into the web root via `PUBLIC_DISK_ROOT`
+  (`config/filesystems.php`). That directory needs a `.htaccess` turning off the
+  PHP engine, since everything in it is web-served.
+- **`proc_open` / `exec`** — Composer's `post-autoload-dump` script fails, so
+  `php artisan package:discover` must be run **manually** after every
+  `composer install`; without it no package provider is registered and the app
+  boots into a blank error. For the same reason `php artisan test` does not run
+  — invoke `php vendor/bin/pest` directly.
+- **`escapeshellarg`** — every `spatie/image-optimizer` optimizer shells out, so
+  a conversion would die with *Call to undefined function escapeshellarg()*,
+  failing the whole upload rather than just skipping optimization. Two
+  consequences, both already applied in `app/Models`:
+  - Every `addMediaConversion()` carries `->nonOptimized()`. Do not add a
+    conversion without it, and never call `->optimize()` — that call cancels
+    `->nonOptimized()` and reintroduces the crash.
+  - `->withResponsiveImages()` is removed. `ResponsiveImageGenerator` hardcodes
+    `->optimize()` internally, so responsive `srcset` variants cannot be
+    generated here at all.
+
+  Emptying `media-library.image_optimizers` does **not** disable optimization:
+  with no recognised optimizer key, `OptimizerChainFactory::create()` falls back
+  to its complete default chain. `->nonOptimized()` is the only real switch.
+
+  If the project ever moves to a host without these restrictions, restoring
+  responsive images means re-adding `->withResponsiveImages()` and dropping the
+  `->nonOptimized()` calls.
+
 ## Known Environment Constraints
 
 - **No Redis on shared cPanel**: cache, session and queue all default to the

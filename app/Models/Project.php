@@ -74,22 +74,21 @@ class Project extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        $this->addMediaConversion('hero')
+        $this->addMediaConversion('hero')->nonOptimized()
               ->width(1920)
               ->height(822) // ~21:9 cinematic
-              ->format('webp')
-              ->withResponsiveImages();
+              ->format('webp');
 
-        $this->addMediaConversion('showcase')
+        $this->addMediaConversion('showcase')->nonOptimized()
               ->width(1200)
               ->height(800)
               ->format('webp');
 
-        $this->addMediaConversion('mobile')
+        $this->addMediaConversion('mobile')->nonOptimized()
               ->width(640)
               ->format('webp');
 
-        $this->addMediaConversion('og')
+        $this->addMediaConversion('og')->nonOptimized()
               ->width(1200)
               ->height(630)
               ->format('webp');

@@ -49,11 +49,16 @@ it('prevents unverified users from voting', function () {
     $session = VotingSession::factory()->open()->create();
     $candidate = Candidate::factory()->create(['voting_session_id' => $session->id]);
 
+    // Now that User implements MustVerifyEmail, the "verified" middleware
+    // intercepts first and sends them to the verification notice rather than
+    // handing back a dead 403. What matters is that no ballot is recorded.
     $this->actingAs($this->unverifiedVoter)
         ->post(route('voting.store', $session->slug), [
             'candidate_id' => $candidate->id,
         ])
-        ->assertForbidden();
+        ->assertRedirect(route('verification.notice'));
+
+    $this->assertDatabaseCount('votes', 0);
 });
 
 it('prevents voting in sessions that are not active', function () {
