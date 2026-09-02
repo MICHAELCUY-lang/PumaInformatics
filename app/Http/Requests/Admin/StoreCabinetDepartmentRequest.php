@@ -23,6 +23,10 @@ class StoreCabinetDepartmentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Departments belong to one cabinet: each generation ran its own
+            // structure. Without this the row lands with a null cabinet_id and
+            // the department is invisible on every public page.
+            'cabinet_id' => ['required', 'exists:cabinets,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'order' => ['integer', 'min:0'],

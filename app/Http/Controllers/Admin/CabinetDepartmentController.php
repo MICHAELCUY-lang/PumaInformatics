@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Cabinet;
 use App\Models\CabinetDepartment;
 use App\Http\Requests\Admin\StoreCabinetDepartmentRequest;
 
@@ -11,13 +12,15 @@ class CabinetDepartmentController extends Controller
 {
     public function index()
     {
-        $departments = CabinetDepartment::withCount('members')->orderBy('order')->get();
+        $departments = CabinetDepartment::with('cabinet')->withCount('members')->orderBy('order')->get();
         return view('admin.cabinet-departments.index', compact('departments'));
     }
 
     public function create()
     {
-        return view('admin.cabinet-departments.create');
+        return view('admin.cabinet-departments.create', [
+            'cabinets' => Cabinet::orderByDesc('term_year')->get(),
+        ]);
     }
 
     public function store(StoreCabinetDepartmentRequest $request)
@@ -28,7 +31,10 @@ class CabinetDepartmentController extends Controller
 
     public function edit(CabinetDepartment $cabinetDepartment)
     {
-        return view('admin.cabinet-departments.edit', compact('cabinetDepartment'));
+        return view('admin.cabinet-departments.edit', [
+            'cabinetDepartment' => $cabinetDepartment,
+            'cabinets' => Cabinet::orderByDesc('term_year')->get(),
+        ]);
     }
 
     public function update(StoreCabinetDepartmentRequest $request, CabinetDepartment $cabinetDepartment)

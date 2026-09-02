@@ -10,6 +10,20 @@
         
         <div class="space-y-8">
             <div>
+                <span class="block text-xs font-sans font-semibold text-gray-400 uppercase tracking-widest mb-2">Cabinet</span>
+                <select name="cabinet_id" class="w-full border-gray-200 focus:border-museum-black focus:ring-0 rounded-none p-3 text-sm" required>
+                    <option value="">— choose a cabinet —</option>
+                    @foreach($cabinets as $cabinet)
+                        <option value="{{ $cabinet->id }}" @selected(old('cabinet_id', $cabinetDepartment->cabinet_id) == $cabinet->id)>
+                            {{ $cabinet->name }} ({{ $cabinet->term_year }})@if($cabinet->is_active) — current @endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('cabinet_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                <p class="mt-2 text-xs text-gray-400">Moving a department to another cabinet takes its members with it.</p>
+            </div>
+
+            <div>
                 <span class="block text-xs font-sans font-semibold text-gray-400 uppercase tracking-widest mb-2">Department Name</span>
                 <input type="text" name="name" class="w-full border-gray-200 focus:border-museum-black focus:ring-0 rounded-none p-3 text-sm" value="{{ old('name', $cabinetDepartment->name) }}" required>
                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
