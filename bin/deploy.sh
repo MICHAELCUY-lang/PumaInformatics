@@ -32,7 +32,17 @@ step "1/8 Pull"
 git pull --ff-only origin master
 
 step "2/8 Composer"
-"$PHP" -d memory_limit=-1 "$HOME/bin/composer" install --no-dev --optimize-autoloader --no-interaction
+# Composer's post-autoload-dump hook runs `artisan package:discover` through
+# Symfony Process, which always fails here because proc_open is disabled. That
+# makes composer exit non-zero even when the install itself succeeded, so under
+# `set -e` it would abort the deploy at this step and silently skip the asset
+# build and cache refresh. Step 3 runs package:discover directly instead.
+#
+# Swallow that expected failure, then prove the install actually worked rather
+# than assuming it.
+"$PHP" -d memory_limit=-1 "$HOME/bin/composer" install --no-dev --optimize-autoloader --no-interaction || true
+test -f vendor/autoload.php || { echo "FATAL: vendor/autoload.php missing — composer really did fail"; exit 1; }
+grep -q "spatie/laravel-permission" vendor/composer/installed.json || { echo "FATAL: runtime dependencies missing from vendor/"; exit 1; }
 
 step "3/8 Package discovery (Composer cannot do this without proc_open)"
 "$PHP" artisan package:discover
@@ -73,3 +83,8 @@ step "8/8 Optimise"
 
 printf '\nDeployed %s\n' "$(git log --oneline -1)"
 printf 'Verify: https://informatics.president.ac.id and check that the homepage is styled.\n'
+printf '\nNote: --no-dev removed Pest/PHPUnit, so the test suite cannot run here\n'
+printf 'until you reinstall them:\n'
+printf '  %s -d memory_limit=-1 $HOME/bin/composer install || true\n' "$PHP"
+printf '  %s artisan package:discover && %s vendor/bin/pest\n' "$PHP" "$PHP"
+printf 'Re-run this script afterwards to drop them again.\n'
