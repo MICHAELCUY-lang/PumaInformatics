@@ -49,13 +49,17 @@
                             -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 22%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,1) 68%);">
             </picture>
 
-            {{-- One veil, not two. The first pass stacked a flat 45% cream over
-                 a 16% photograph and the result was invisible — technically
-                 present, practically absent. Only the left-to-right gradient
-                 survives, and only to protect the headline: it is opaque cream
-                 where the type sits and clears completely by the midpoint, so
-                 the photograph reads at full strength on the right. --}}
-            <div class="absolute inset-0 bg-gradient-to-r from-jp-cream via-jp-cream/75 to-transparent"></div>
+            {{-- One veil, and it changes direction with the layout.
+
+                 Wide screens put the type in the left column, so the gradient
+                 runs left to right: opaque cream under the words, clearing by
+                 the midpoint so the photograph reads at full strength.
+
+                 Below md the type spans the full width and a horizontal gradient
+                 protects nothing — the paragraph landed straight on the faces.
+                 There the gradient runs top to bottom instead. --}}
+            <div class="absolute inset-0 hidden md:block bg-gradient-to-r from-jp-cream via-jp-cream/75 to-transparent"></div>
+            <div class="absolute inset-0 md:hidden bg-gradient-to-b from-jp-cream via-jp-cream/88 to-jp-cream/35"></div>
 
             {{-- Warm wash: gold from the lower left, cool blue from the upper right --}}
             <div class="absolute -top-56 -right-56 w-[60rem] h-[60rem] rounded-full blur-[130px]
