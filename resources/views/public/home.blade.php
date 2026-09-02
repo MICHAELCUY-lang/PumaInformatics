@@ -28,6 +28,32 @@
              Three layers only — a warm wash, a floral field, and two blooms —
              instead of the five that were fighting each other. --}}
         <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            {{-- Cohort photograph, worked into the canvas rather than laid on it.
+
+                 Three treatments do that: desaturated and tinted toward the
+                 palette so it stops reading as a separate photograph; held at
+                 ~16% so dark text keeps its contrast anywhere; and masked with a
+                 gradient that fades it out entirely on the left, which is where
+                 the headline and paragraph sit.
+
+                 The 960px file is served below 768px — a phone never needs the
+                 1920px one, and at 16% opacity the detail is invisible anyway. --}}
+            <picture>
+                <source media="(max-width: 767px)" srcset="{{ asset('images/hero-sm.jpg') }}">
+                <img src="{{ asset('images/hero.jpg') }}"
+                     alt=""
+                     fetchpriority="high"
+                     class="absolute inset-0 w-full h-full object-cover object-center
+                            opacity-[0.16] grayscale-[0.75] contrast-[0.95]"
+                     style="mask-image: linear-gradient(100deg, transparent 0%, transparent 26%, rgba(0,0,0,0.55) 52%, rgba(0,0,0,0.95) 100%);
+                            -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 26%, rgba(0,0,0,0.55) 52%, rgba(0,0,0,0.95) 100%);">
+            </picture>
+
+            {{-- Cream veil over the photograph: pulls it into the page's warmth
+                 and lifts the whole canvas back toward the site's base tone. --}}
+            <div class="absolute inset-0 bg-jp-cream/45"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-jp-cream via-jp-cream/70 to-transparent"></div>
+
             {{-- Warm wash: gold from the lower left, cool blue from the upper right --}}
             <div class="absolute -top-56 -right-56 w-[60rem] h-[60rem] rounded-full blur-[130px]
                         bg-gradient-to-br from-sapientia-primary/12 via-sapientia-secondary/8 to-transparent"></div>

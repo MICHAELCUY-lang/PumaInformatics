@@ -11,6 +11,8 @@
 @props(['cabinetLineage' => collect(), 'activeSlug' => null, 'compact' => false, 'showClubs' => true])
 
 @php
+    use Illuminate\Support\Str;
+
     // Clubs sit beside the cabinets rather than in their own section: both
     // answer "what is under PUMA Informatics", just on different axes — one
     // over time, one right now.
@@ -111,18 +113,10 @@
         </ul>
 
         @if($clubs)
-            {{-- Divider: a vertical rule beside the cabinets on wide screens,
-                 a horizontal one above the clubs when the row stacks. --}}
-            <div class="shrink-0 self-stretch flex items-center" aria-hidden="true">
-                <span class="hidden lg:block w-px h-32 bg-gradient-to-b from-transparent via-jp-indigo/15 to-transparent"></span>
-                <span class="lg:hidden w-40 h-px bg-gradient-to-r from-transparent via-jp-indigo/15 to-transparent"></span>
-            </div>
-
+            {{-- No rule between the groups: cabinets simply sit on the left and
+                 clubs on the right of one continuous band. Spacing carries the
+                 distinction, and each club keeps its own caption. --}}
             <div class="text-center">
-                <h3 class="text-[10px] uppercase tracking-[0.35em] text-jp-indigo/40 font-semibold mb-8">
-                    Clubs &amp; Communities
-                </h3>
-
                 <ul class="flex flex-wrap justify-center items-start gap-8 md:gap-12">
                     @foreach($clubs as $club)
                         {{-- Anchor when the club has a site, plain div when it
@@ -155,11 +149,16 @@
                                     'text-jp-indigo/50' => ! $club['url'],
                                 ])>{{ $club['name'] }}</span>
 
-                                @if($club['url'])
-                                    <span class="mt-1 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/30">Visit</span>
-                                @else
-                                    <span class="mt-1 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/25">Coming soon</span>
-                                @endif
+                                {{-- The descriptor replaces the group heading that
+                                     used to sit above these: it tells a visitor
+                                     these are clubs without a divider saying so. --}}
+                                <span class="mt-1 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/35 leading-relaxed">
+                                    {{ Str::of($club['full_name'])->after('President University ') }}
+                                </span>
+
+                                @unless($club['url'])
+                                    <span class="mt-2 block text-[9px] uppercase tracking-[0.2em] text-jp-indigo/25">Coming soon</span>
+                                @endunless
                             </{{ $club['url'] ? 'a' : 'div' }}>
                         </li>
                     @endforeach
