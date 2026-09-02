@@ -54,9 +54,27 @@ GOMAXPROCS=1 RAYON_NUM_THREADS=1 UV_THREADPOOL_SIZE=1 npm run build
 test -f public/build/manifest.json || { echo "manifest missing, aborting"; exit 1; }
 
 step "5/8 Publish public/ into the document root"
-rm -rf "$DOCROOT/build"
-cp -r public/build "$DOCROOT/build"
-cp public/robots.txt public/logo.png "$DOCROOT/"
+# Copy everything in public/, rather than a hand-written list of files. The list
+# version silently missed public/images when the hero photograph was added — the
+# page rendered fine and the image just never loaded, which is exactly the kind
+# of failure nobody notices. Anything added to public/ from now on ships.
+#
+# Two exclusions, both because the docroot copy is authoritative:
+#   index.php — the docroot holds the bridge that points at this app; the repo's
+#               copy expects Laravel's own layout and would break the site.
+#   storage   — PUBLIC_DISK_ROOT, where uploads are written.
+#
+# The glob skips dotfiles, so .htaccess is handled separately below.
+for entry in public/*; do
+    name=$(basename "$entry")
+    case "$name" in
+        index.php|storage) continue ;;
+    esac
+    rm -rf "${DOCROOT:?}/$name"
+    cp -r "$entry" "$DOCROOT/$name"
+    printf '  published %s\n' "$name"
+done
+
 # Rebuild the docroot .htaccess from the repo, then re-append cPanel's handler
 # block. Dropping that block silently drops the site back to PHP 7.4.
 HANDLER=$(sed -n '/# php -- BEGIN cPanel-generated handler/,/# php -- END cPanel-generated handler/p' "$DOCROOT/.htaccess" || true)
