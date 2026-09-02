@@ -16,7 +16,8 @@
 <div class="relative" x-data="{ scrollY: 0 }" @scroll.window="scrollY = window.pageYOffset">
 
     <!-- Hero — Sapientia Concept -->
-    <section class="relative min-h-[90vh] flex items-center pt-20 overflow-hidden border-b border-sapientia-primary/10">
+    {{-- pt clears the floating island, which is ~84px tall including its offset --}}
+    <section class="relative min-h-[88vh] flex items-center pt-28 sm:pt-32 pb-16 overflow-hidden border-b border-sapientia-primary/10">
         <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
             <div class="absolute -top-40 -right-40 w-[70rem] h-[70rem] bg-gradient-to-br from-sapientia-primary/18 via-sapientia-secondary/10 to-transparent blur-[120px] rounded-full"></div>
             <div class="absolute -bottom-40 -left-40 w-[55rem] h-[55rem] bg-gradient-to-tr from-jp-gold/10 via-sapientia-light/10 to-transparent blur-[140px] rounded-full"></div>
@@ -75,26 +76,31 @@
 
         <div class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 w-full" x-data="{ shown: false }" x-init="setTimeout(() => shown = true, 100)">
             <div class="lg:grid lg:grid-cols-12 gap-16 items-center">
-                <div class="lg:col-span-10">
+                {{-- 7 of 12 columns, not 10: the ink blob occupies the right of
+                     the canvas, and at 10 the display type ran underneath it and
+                     lost contrast against the dark shape. --}}
+                <div class="lg:col-span-7">
                     <!-- Subtle small text badge -->
-                    <div class="mb-10 reveal" :class="shown ? 'active' : ''">
-                        <span class="inline-flex items-center gap-6 text-[11px] uppercase tracking-[0.6em] text-sapientia-primary font-black">
-                            <span class="w-12 h-[2px] bg-gradient-to-r from-sapientia-primary to-transparent"></span>
-                            Sapientia Cabinet
+                    <div class="mb-8 reveal" :class="shown ? 'active' : ''">
+                        <span class="inline-flex items-center gap-5 text-[10px] uppercase tracking-[0.5em] text-sapientia-primary font-black">
+                            <span class="w-10 h-[2px] bg-gradient-to-r from-sapientia-primary to-transparent"></span>
+                            {{ $activeCabinet?->name ?? 'PUMA Informatics' }}
                         </span>
                     </div>
 
-                    <h1 class="font-serif text-6xl sm:text-7xl md:text-9xl lg:text-[10rem] text-sapientia-deep leading-[0.9] sm:leading-[0.85] mb-10 sm:mb-12 reveal reveal-delay-100" :class="shown ? 'active' : ''">
+                    {{-- Capped at 7rem: 10rem overflowed the column and collided
+                         with the artwork on every screen wider than a laptop. --}}
+                    <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] text-sapientia-deep leading-[0.95] sm:leading-[0.9] mb-8 reveal reveal-delay-100" :class="shown ? 'active' : ''">
                         <span class="block">PUMA</span>
                         <span class="text-gradient italic">Informatics.</span>
                     </h1>
 
-                    <div class="max-w-2xl reveal reveal-delay-200" :class="shown ? 'active' : ''">
-                        <p class="text-lg sm:text-xl md:text-2xl text-sapientia-deep/85 font-light leading-relaxed mb-12 sm:mb-16 border-l-2 border-sapientia-primary/20 pl-6 sm:pl-8">
+                    <div class="max-w-xl reveal reveal-delay-200" :class="shown ? 'active' : ''">
+                        <p class="text-base sm:text-lg md:text-xl text-sapientia-deep/80 font-light leading-relaxed mb-10 border-l-2 border-sapientia-primary/20 pl-6">
                             We are dedicated to developing students' capabilities in technology and fostering a community of forward-thinking tech enthusiasts.
                         </p>
 
-                        <div class="flex flex-wrap items-center gap-8 sm:gap-12">
+                        <div class="flex flex-wrap items-center gap-6 sm:gap-8">
                             <a href="#projects" class="group relative px-8 sm:px-10 py-4 sm:py-5 bg-sapientia-deep text-white text-[11px] tracking-[0.4em] uppercase font-bold overflow-hidden transition-transform duration-500 hover:scale-105 active:scale-95 shadow-elegant">
                                 <span class="relative z-10">Explore Archive</span>
                                 <div class="absolute inset-0 bg-sapientia-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-cinematic"></div>
