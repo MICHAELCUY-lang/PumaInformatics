@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -13,7 +14,7 @@ class CabinetDepartment extends Model
     /** @use HasFactory<\Database\Factories\CabinetDepartmentFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'description', 'order', 'is_active'];
+    protected $fillable = ['cabinet_id', 'name', 'slug', 'description', 'order', 'is_active'];
 
     protected function casts(): array
     {
@@ -21,6 +22,15 @@ class CabinetDepartment extends Model
             'is_active' => 'boolean',
             'order' => 'integer',
         ];
+    }
+
+    /**
+     * Departments are scoped to one cabinet: each generation ran its own
+     * structure, so they are never shared across terms.
+     */
+    public function cabinet(): BelongsTo
+    {
+        return $this->belongsTo(Cabinet::class, 'cabinet_id');
     }
 
     public function members(): HasMany

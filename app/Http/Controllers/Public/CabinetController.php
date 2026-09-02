@@ -23,16 +23,23 @@ class CabinetController extends Controller
             $activeCabinet = $cabinets->firstWhere('is_active', true) ?? $cabinets->first();
         }
 
-        $departments = CabinetDepartment::with(['members' => function($query) use ($activeCabinet) {
-            $query->where('is_active', true)
-                  ->orderBy('role_hierarchy_level', 'asc')
-                  ->with('media');
-            if ($activeCabinet) {
-                $query->where('cabinet_id', $activeCabinet->id);
-            }
-        }])
-        ->orderBy('order', 'asc')
-        ->get();
+        // Departments belong to a cabinet, so each generation shows the structure
+        // it actually ran rather than a merged list. Departments with no members
+        // are dropped so an incomplete archive does not render empty sections.
+        $departments = CabinetDepartment::query()
+            ->when($activeCabinet, fn ($q) => $q->where('cabinet_id', $activeCabinet->id))
+            ->with(['members' => function ($query) use ($activeCabinet) {
+                $query->where('is_active', true)
+                      ->orderBy('role_hierarchy_level', 'asc')
+                      ->with('media');
+                if ($activeCabinet) {
+                    $query->where('cabinet_id', $activeCabinet->id);
+                }
+            }])
+            ->orderBy('order', 'asc')
+            ->get()
+            ->filter(fn ($department) => $department->members->isNotEmpty())
+            ->values();
 
         // Fetch Executive members (those without a department)
         $executives = CabinetMember::whereNull('department_id')
@@ -46,7 +53,17 @@ class CabinetController extends Controller
         
         $executives = $executives->get();
 
-        return view('public.cabinet.index', compact('departments', 'cabinets', 'activeCabinet', 'executives'));
+        // Each generation's own programme of events, newest first.
+        $events = \App\Models\Event::query()
+            ->where('status', 'published')
+            ->when($activeCabinet, fn ($q) => $q->where('cabinet_id', $activeCabinet->id))
+            ->with('media')
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        return view('public.cabinet.index', compact(
+            'departments', 'cabinets', 'activeCabinet', 'executives', 'events'
+        ));
     }
 
     public function show($slug)

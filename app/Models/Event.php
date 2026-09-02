@@ -22,7 +22,7 @@ class Event extends Model implements HasMedia
     use HasFactory, SoftDeletes, LogsActivity, InteractsWithMedia;
 
     protected $fillable = [
-        'category_id', 'title', 'slug', 'description', 'excerpt',
+        'category_id', 'cabinet_id', 'title', 'slug', 'description', 'excerpt',
         'status', 'is_featured', 'start_date', 'end_date', 'timezone',
         'location_name', 'location_address', 'location_coordinates',
         'external_registration_url', 'internal_rsvp_enabled',
@@ -48,6 +48,15 @@ class Event extends Model implements HasMedia
     public function category(): BelongsTo
     {
         return $this->belongsTo(EventCategory::class, 'category_id');
+    }
+
+    /**
+     * The generation that ran this event. Lets the archive show each cabinet's
+     * own programme rather than one undifferentiated list.
+     */
+    public function cabinet(): BelongsTo
+    {
+        return $this->belongsTo(Cabinet::class, 'cabinet_id');
     }
 
     public function tags(): BelongsToMany
