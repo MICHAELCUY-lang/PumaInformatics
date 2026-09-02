@@ -113,6 +113,11 @@
         </div>
     </section>
 
+    {{-- Cabinet lineage: one emblem per generation, each opening that term's
+         own roster and programme. Sits directly under the hero so the history
+         is the first thing offered after the introduction. --}}
+    <x-public.cabinet-lineage :cabinet-lineage="$cabinetLineage" />
+
     <!-- Upcoming Events (Spotlight) -->
     @if($upcomingEvents->isNotEmpty())
     <section class="py-24 relative bg-white bg-striped">
@@ -204,9 +209,11 @@
     <!-- Project Archive -->
     @if($featuredProjects->isNotEmpty())
     <section id="projects" class="py-24 relative overflow-hidden bg-sapientia-cream bg-striped-vertical">
-        <!-- Wave background decoration -->
-        <div class="absolute top-0 right-0 w-1/3 h-full opacity-[0.05] pointer-events-none">
-            <svg viewBox="0 0 300 1000" fill="none" class="w-full h-full"><path d="M300 0C250 150 100 300 50 500C0 700 150 850 100 1000" stroke="#448AFF" stroke-width="2"/></svg>
+        {{-- Floral accent, replacing the single meandering wave line --}}
+        <div class="absolute top-0 right-0 w-1/3 h-full pointer-events-none overflow-hidden" aria-hidden="true">
+            <x-public.bloom class="absolute -right-16 top-24 w-72 h-72 text-jp-gold opacity-[0.10]" />
+            <x-public.bloom class="absolute right-10 top-1/2 w-40 h-40 text-sapientia-primary opacity-[0.07]" rotate="24" :petals="8" />
+            <x-public.bloom class="absolute -right-10 bottom-24 w-56 h-56 text-jp-gold opacity-[0.08]" rotate="48" />
         </div>
         
         <div class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">

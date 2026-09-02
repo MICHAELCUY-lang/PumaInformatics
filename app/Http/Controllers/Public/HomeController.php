@@ -53,9 +53,17 @@ class HomeController extends Controller
             ->take(6);
         }
 
+        // Every generation, newest first, for the lineage strip under the hero.
+        // Ordered by generation where it is known and term otherwise, so a
+        // cabinet added before the field existed still lands sensibly.
+        $cabinetLineage = Cabinet::withCount(['members' => fn ($q) => $q->where('is_active', true)])
+            ->orderByRaw('generation IS NULL, generation DESC')
+            ->orderBy('term_year', 'desc')
+            ->get();
+
         return view('public.home', compact(
             'featuredProjects', 'upcomingEvents', 'latestArticles',
-            'activeCabinet', 'cabinetMembers'
+            'activeCabinet', 'cabinetMembers', 'cabinetLineage'
         ));
     }
 }

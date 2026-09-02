@@ -32,22 +32,17 @@
         <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sapientia-primary/25 to-transparent"></div>
     </section>
 
-    {{-- Cabinet Period Selector --}}
-    @if($cabinets->count() > 1)
-    <section class="py-8 relative bg-white/20">
-        <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-jp-indigo/10 to-transparent"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-center gap-2 flex-wrap">
-                <span class="text-[10px] tracking-[0.3em] uppercase text-jp-indigo/60 font-black mr-4">Period:</span>
-                @foreach($cabinets as $cab)
-                    <a href="{{ route('public.cabinet.index', ['cabinet' => $cab->slug]) }}"
-                       class="px-5 py-2.5 text-[11px] tracking-[0.15em] uppercase font-black transition-all duration-500 border {{ $activeCabinet && $activeCabinet->id === $cab->id ? 'bg-jp-indigo text-jp-cream border-jp-indigo' : 'bg-transparent text-jp-indigo border-jp-indigo/30 hover:border-jp-indigo' }} shadow-sm">
-                        {{ $cab->name }}
-                    </a>
-                @endforeach
-            </div>
+    {{-- Generation selector. Same emblem strip as the homepage so switching
+         cabinets looks and behaves identically wherever you meet it. --}}
+    <x-public.cabinet-lineage
+        :cabinet-lineage="$cabinets"
+        :active-slug="$activeCabinet?->slug"
+        compact />
+
+    @if($activeCabinet?->tagline)
+        <div class="bg-white/20 py-6 text-center">
+            <p class="font-serif text-lg text-jp-indigo/60 italic">{{ $activeCabinet->tagline }}</p>
         </div>
-    </section>
     @endif
 
     <!-- Departments & Members -->
@@ -179,6 +174,56 @@
 
         </div>
     </section>
+
+    {{-- This generation's programme. Events belong to a cabinet, so each term
+         shows what it actually ran rather than one undifferentiated list. --}}
+    @if($events->isNotEmpty())
+    <section class="py-24 relative bg-jp-cream-warm overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <x-public.bloom class="absolute -left-20 top-10 w-72 h-72 text-jp-gold opacity-[0.07]" />
+            <x-public.bloom class="absolute -right-24 bottom-0 w-80 h-80 text-jp-indigo opacity-[0.05]" rotate="120" />
+        </div>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="block text-[10px] uppercase tracking-[0.45em] text-jp-gold font-semibold mb-4">
+                    Programme
+                </span>
+                <h2 class="font-serif text-3xl md:text-4xl text-jp-indigo">
+                    What {{ $activeCabinet?->name ?? 'This Cabinet' }} Ran
+                </h2>
+            </div>
+
+            <ol class="relative border-l border-jp-indigo/10 ml-3 md:ml-6 space-y-10">
+                @foreach($events as $event)
+                    <li class="relative pl-8 md:pl-12">
+                        <span class="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full bg-jp-gold ring-4 ring-jp-cream-warm"></span>
+
+                        <time datetime="{{ $event->start_date?->toDateString() }}"
+                              class="block text-[10px] uppercase tracking-[0.25em] text-jp-indigo/40 mb-2">
+                            {{ $event->start_date?->translatedFormat('F Y') ?? 'Undated' }}
+                        </time>
+
+                        <h3 class="font-serif text-xl md:text-2xl text-jp-indigo">
+                            @if($event->status === 'published')
+                                <a href="{{ route('public.events.show', $event->slug) }}"
+                                   class="hover:text-jp-gold transition-colors duration-500">{{ $event->title }}</a>
+                            @else
+                                {{ $event->title }}
+                            @endif
+                        </h3>
+
+                        @if($event->excerpt || $event->description)
+                            <p class="mt-2 text-jp-indigo/50 font-light leading-relaxed max-w-2xl">
+                                {{ Str::limit(strip_tags($event->excerpt ?: $event->description), 180) }}
+                            </p>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
+    @endif
 
 </div>
 @endsection
