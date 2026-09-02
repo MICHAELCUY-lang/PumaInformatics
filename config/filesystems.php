@@ -38,9 +38,20 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Public media (Media Library uploads, aspiration attachments).
+         *
+         * Normally `php artisan storage:link` symlinks public/storage to this
+         * root. The production host disables PHP's symlink() outright, so that
+         * command can never succeed there. PUBLIC_DISK_ROOT lets the disk write
+         * straight into a directory that is already inside the web root, which
+         * achieves the same result without a symlink.
+         *
+         * Leave it unset locally to keep the standard storage:link behaviour.
+         */
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => env('PUBLIC_DISK_ROOT') ?: storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,

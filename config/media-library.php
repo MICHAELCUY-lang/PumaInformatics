@@ -179,6 +179,18 @@ return [
      * The media library will try to optimize all converted images by removing
      * metadata and applying a little bit of compression. These are
      * the optimizers that will be used by default.
+     *
+     * NOTE: this list is inert for this application. Every optimizer here shells
+     * out to a CLI binary, and the production host has escapeshellarg, exec and
+     * proc_open in disable_functions — so a conversion would die with
+     * "Call to undefined function escapeshellarg()", taking the whole upload
+     * down rather than just skipping optimization.
+     *
+     * Emptying this array does NOT disable optimization: with no recognised
+     * optimizer key, OptimizerChainFactory::create() falls back to its full
+     * default chain. The only reliable switch is ->nonOptimized() on each
+     * conversion, which is what the models in app/Models do. Leave this list
+     * alone and do not add ->nonOptimized()-less conversions.
      */
     'image_optimizers' => [
         Jpegoptim::class => [

@@ -12,7 +12,7 @@ class StoreAspirationCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasRole('Super Admin') || $this->user()->hasRole('Admin');
+        return $this->user()->can('manage.aspirations');
     }
 
     /**

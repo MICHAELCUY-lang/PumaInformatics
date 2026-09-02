@@ -2,65 +2,93 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
+/**
+ * The authoritative definition of the RBAC matrix.
+ *
+ * Safe to re-run on every deploy: roles and permissions are created with
+ * firstOrCreate and role permissions are synced rather than appended, so this
+ * doubles as the mechanism for rolling out new permissions.
+ */
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Every permission the application checks anywhere in app/.
      */
-    public function run(): void
-    {
-        // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    public const PERMISSIONS = [
+        'manage.users',
+        'manage.roles',
+        'manage.news',
+        'manage.events',
+        'manage.cabinet',
+        'manage.voting',
+        'manage.aspirations',
+        'manage.projects',
+        'manage.partners',
+        'manage.navigation',
+        'manage.media',
+        'manage.settings',
+        'view.activity_logs',
+        'view.security_logs',
+        'manage.audit_retention',
+        'manage.cache',
+    ];
 
-        // Create granular permissions
-        $permissions = [
+    /**
+     * Super Admin is deliberately absent: it is granted everything by the
+     * Gate::before hook in AppServiceProvider.
+     */
+    public const ROLE_MATRIX = [
+        'Admin' => [
             'manage.users',
             'manage.roles',
             'manage.news',
             'manage.events',
+            'manage.cabinet',
             'manage.voting',
             'manage.aspirations',
             'manage.projects',
             'manage.partners',
             'manage.navigation',
+            'manage.media',
             'manage.settings',
             'view.activity_logs',
-            'view.security_logs',
-            'manage.audit_retention',
             'manage.cache',
-        ];
+        ],
+        'Editor' => [
+            'manage.news',
+            'manage.events',
+            'manage.projects',
+            'manage.partners',
+            'manage.media',
+            'view.activity_logs',
+        ],
+        'Moderator' => [
+            'manage.aspirations',
+        ],
+        'Viewer' => [],
+        'User' => [],
+    ];
 
-        foreach ($permissions as $permission) {
-            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $permission]);
+    public function run(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        foreach (self::PERMISSIONS as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Create Roles and assign created permissions
-        $superAdmin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Super Admin']);
-        // Super Admin gets everything via Gate::before in AuthServiceProvider/AppServiceProvider usually,
-        // but we can explicitly assign or leave it to Gate.
+        Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
 
-        $admin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin']);
-        
-        // Admins get everything EXCEPT security logs and audit retention (which are Super Admin only)
-        $adminPermissions = array_filter($permissions, function($p) {
-            return !in_array($p, ['view.security_logs', 'manage.audit_retention']);
-        });
-        $admin->givePermissionTo($adminPermissions);
+        foreach (self::ROLE_MATRIX as $roleName => $permissions) {
+            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            $role->syncPermissions($permissions);
+        }
 
-        $editor = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Editor']);
-        $editor->givePermissionTo([
-            'manage.news', 'manage.events', 'manage.projects', 'manage.partners', 'view.activity_logs'
-        ]);
-
-        $moderator = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Moderator']);
-        $moderator->givePermissionTo([
-            'manage.aspirations'
-        ]);
-
-        $viewer = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Viewer']);
-        // Viewers have no explicit manage permissions
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

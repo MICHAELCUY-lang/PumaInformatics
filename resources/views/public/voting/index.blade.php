@@ -100,7 +100,7 @@
                             <div class="grid grid-cols-1 lg:grid-cols-12 reveal" :class="shown ? 'active' : ''" style="transition-delay: {{ $index * 100 }}ms;">
                                 {{-- Status Bar --}}
                                 <div class="lg:col-span-1 flex lg:flex-col items-center justify-center p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-jp-indigo/5 bg-jp-cream group-hover:bg-jp-indigo transition-colors duration-500">
-                                    @if($session->status === 'active')
+                                    @if($session->isOpenForVoting())
                                         <span class="flex items-center gap-2 lg:flex-col lg:gap-1 text-jp-gold group-hover:text-jp-cream transition-colors">
                                             <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                             <span class="text-[10px] tracking-[0.25em] uppercase font-bold lg:mt-1">LIVE</span>
@@ -119,11 +119,11 @@
                                     <div class="flex flex-wrap items-center gap-8 text-sm">
                                         <div>
                                             <span class="block text-[10px] uppercase tracking-[0.2em] text-jp-indigo/30 font-semibold mb-1">Start Date</span>
-                                            <span class="text-jp-indigo font-medium">{{ $session->start_date->format('F j, Y') }}</span>
+                                            <span class="text-jp-indigo font-medium">{{ $session->start_date?->format('F j, Y') ?? 'TBA' }}</span>
                                         </div>
                                         <div>
                                             <span class="block text-[10px] uppercase tracking-[0.2em] text-jp-indigo/30 font-semibold mb-1">End Date</span>
-                                            <span class="text-jp-indigo font-medium">{{ $session->end_date->format('F j, Y') }}</span>
+                                            <span class="text-jp-indigo font-medium">{{ $session->end_date?->format('F j, Y') ?? 'TBA' }}</span>
                                         </div>
                                         <div>
                                             <span class="block text-[10px] uppercase tracking-[0.2em] text-jp-indigo/30 font-semibold mb-1">Candidates</span>

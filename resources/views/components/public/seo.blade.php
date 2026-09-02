@@ -23,7 +23,7 @@
   "@@type": "Organization",
   "name": "{{ config('app.name', 'PUMA IT') }}",
   "url": "{{ url('/') }}",
-  "logo": "{{ asset('images/logo.png') }}"
+  "logo": "{{ asset('logo.png') }}"
 }
 </script>
 

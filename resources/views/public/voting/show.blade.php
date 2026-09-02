@@ -27,12 +27,12 @@
             <div class="flex flex-col md:flex-row justify-between items-start gap-8">
                 <div class="reveal reveal-delay-100" :class="shown ? 'active' : ''">
                     <div class="flex items-center gap-3 mb-4">
-                        @if($session->status === 'active')
+                        @if($session->isOpenForVoting())
                             <span class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-green-600">
                                 <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                 Live Election
                             </span>
-                        @elseif($session->status === 'upcoming')
+                        @elseif($session->isUpcoming())
                             <span class="text-[10px] font-semibold uppercase tracking-[0.25em] text-jp-indigo/40">Upcoming</span>
                         @else
                             <span class="text-[10px] font-semibold uppercase tracking-[0.25em] text-jp-indigo/40">Election Closed</span>
@@ -110,7 +110,7 @@
                     </span>
                 </div>
                 <h2 class="font-serif text-3xl text-jp-indigo reveal reveal-delay-100" :class="shown ? 'active' : ''">
-                    {{ $session->status === 'active' && !$hasVoted ? 'Select Your Candidate' : 'The Candidates' }}
+                    {{ $session->isOpenForVoting() && !$hasVoted ? 'Select Your Candidate' : 'The Candidates' }}
                 </h2>
             </div>
 
@@ -120,7 +120,7 @@
                 </div>
             @else
                 {{-- Voting Form (Active + Not voted + Logged In) --}}
-                @if($session->status === 'active' && !$hasVoted && auth()->check())
+                @if($session->isOpenForVoting() && !$hasVoted && auth()->check())
                     <form action="{{ route('voting.store', $session->slug) }}" method="POST" x-data="{ selectedCandidate: null }">
                         @csrf
                         <input type="hidden" name="fingerprint" id="fingerprint_input">
@@ -166,7 +166,7 @@
                                         'totalVotes' => $totalVotes,
                                         'selectable' => false,
                                         'voted' => $hasVoted && $userVote && $userVote->candidate_id === $candidate->id,
-                                        'isWinner' => $session->status === 'closed' && $candidate->id === $winner->id
+                                        'isWinner' => $session->hasFinished() && $winner && $candidate->id === $winner->id
                                     ])
                                 </div>
                             </div>
@@ -174,7 +174,7 @@
                     </div>
 
                 {{-- Must Login --}}
-                @elseif(!auth()->check() && $session->status === 'active')
+                @elseif(!auth()->check() && $session->isOpenForVoting())
                     <div class="space-y-8 mb-12">
                         @foreach($session->candidates as $index => $candidate)
                             <div x-data="{ shown: false }" x-intersect.once="shown = true">
@@ -198,7 +198,7 @@
                     </div>
 
                 {{-- Upcoming --}}
-                @elseif($session->status === 'upcoming')
+                @elseif($session->isUpcoming())
                     <div class="space-y-8 mb-12 opacity-60 pointer-events-none">
                         @foreach($session->candidates as $index => $candidate)
                             @include('public.voting._candidate_card', ['candidate' => $candidate, 'showResults' => false, 'totalVotes' => 0, 'selectable' => false, 'voted' => false])

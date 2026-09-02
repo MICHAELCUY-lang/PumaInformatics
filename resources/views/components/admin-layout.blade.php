@@ -37,25 +37,34 @@
                             </a>
                         </li>
 
-                        <!-- Content -->
+                        {{-- Content. Every entry is gated on the same permission as its
+                             route middleware, so a role never sees a link that 403s. --}}
+                        @canany(['manage.news', 'manage.events', 'manage.projects', 'manage.cabinet', 'manage.partners'])
                         <li>
                             <h4 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Content</h4>
                             <ul class="space-y-1">
+                                @can('manage.news')
                                 <li>
                                     <a href="{{ route('admin.articles.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.articles.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Newsroom
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.events')
                                 <li>
                                     <a href="{{ route('admin.events.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.events.*', 'admin.event-categories.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Events
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.projects')
                                 <li>
                                     <a href="{{ route('admin.projects.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.projects.*', 'admin.project-categories.*', 'admin.technologies.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Projects
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.cabinet')
                                 <li>
                                     <a href="{{ route('admin.cabinets.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.cabinets.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Cabinets
@@ -71,74 +80,100 @@
                                         Departments
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.partners')
                                 <li>
                                     <a href="{{ route('admin.partners.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.partners.*', 'admin.partner-categories.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Partners
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcanany
 
-                        <!-- Community -->
+                        {{-- Community --}}
+                        @canany(['manage.aspirations', 'manage.voting'])
                         <li>
                             <h4 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Community</h4>
                             <ul class="space-y-1">
+                                @can('manage.aspirations')
                                 <li>
                                     <a href="{{ route('admin.aspirations.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.aspirations.*', 'admin.aspiration-categories.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Aspirations
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.voting')
                                 <li>
                                     <a href="{{ route('admin.voting-sessions.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.voting-sessions.*', 'admin.candidates.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Voting
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcanany
 
-                        <!-- Governance -->
+                        {{-- Governance --}}
+                        @canany(['manage.users', 'manage.roles', 'view.activity_logs'])
                         <li>
                             <h4 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Governance</h4>
                             <ul class="space-y-1">
+                                @can('manage.users')
                                 <li>
                                     <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.users.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Users
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.roles')
                                 <li>
                                     <a href="{{ route('admin.roles.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.roles.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Roles
                                     </a>
                                 </li>
+                                @endcan
+                                @can('view.activity_logs')
                                 <li>
                                     <a href="{{ route('admin.activity-logs.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.activity-logs.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Activity Ledger
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcanany
 
-                        <!-- System -->
+                        {{-- System --}}
+                        @canany(['manage.media', 'manage.navigation', 'manage.cache'])
                         <li>
                             <h4 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">System</h4>
                             <ul class="space-y-1">
+                                @can('manage.media')
                                 <li>
                                     <a href="{{ route('admin.media.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.media.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Media Library
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.navigation')
                                 <li>
                                     <a href="{{ route('admin.navigations.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.navigations.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Navigation
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage.cache')
                                 <li>
                                     <a href="{{ route('admin.cache.index') }}" class="block px-4 py-2.5 rounded-none text-sm font-medium transition-colors hover:text-museum-black {{ request()->routeIs('admin.cache.*') ? 'text-museum-black border-l-2 border-museum-black bg-museum-light/50' : 'text-museum-gray hover:bg-museum-light/50 border-l-2 border-transparent' }}">
                                         Cache Management
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcanany
                     </ul>
                 </nav>
             </aside>

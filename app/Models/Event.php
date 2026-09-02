@@ -77,24 +77,23 @@ class Event extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        $this->addMediaConversion('thumbnail')
+        $this->addMediaConversion('thumbnail')->nonOptimized()
               ->width(400)
               ->height(300)
               ->sharpen(10)
               ->format('webp');
 
-        $this->addMediaConversion('card')
+        $this->addMediaConversion('card')->nonOptimized()
               ->width(800)
               ->height(600)
               ->format('webp');
 
-        $this->addMediaConversion('hero')
+        $this->addMediaConversion('hero')->nonOptimized()
               ->width(1920)
               ->height(822) // ~21:9 cinematic ratio
-              ->format('webp')
-              ->withResponsiveImages();
+              ->format('webp');
               
-        $this->addMediaConversion('mobile-optimized')
+        $this->addMediaConversion('mobile-optimized')->nonOptimized()
               ->width(640)
               ->format('webp');
     }

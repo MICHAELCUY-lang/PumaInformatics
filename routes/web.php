@@ -43,69 +43,100 @@ Route::name('public.')->namespace('App\Http\Controllers\Public')->group(function
 use App\Http\Controllers\Admin\NavigationController;
 use App\Http\Controllers\Admin\DashboardController;
 
+// Landing page after login. Staff are sent straight to the admin panel; ordinary
+// members get the member dashboard instead of a 403.
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth.basic', 'role:Super Admin|Admin|Editor'])->name('dashboard');
+    if (auth()->user()->hasAnyRole(['Super Admin', 'Admin', 'Editor', 'Moderator'])) {
+        return redirect()->route('admin.dashboard');
+    }
 
-Route::middleware(['auth.basic', 'role:Super Admin|Admin|Editor'])->prefix('admin')->name('admin.')->group(function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+/*
+| The role gate below only decides who may see the panel at all. Each module
+| carries its own permission middleware so that, for example, a Moderator who
+| is admitted here to triage aspirations cannot reach the destroy action on
+| articles — several controllers have no in-method authorization of their own.
+*/
+Route::middleware(['auth', 'role:Super Admin|Admin|Editor|Moderator'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Navigation Manager
-    Route::post('navigations/reorder', [NavigationController::class, 'reorder'])->name('navigations.reorder');
-    Route::resource('navigations', NavigationController::class)->except(['show']);
+    Route::middleware('permission:manage.navigation')->group(function () {
+        Route::post('navigations/reorder', [NavigationController::class, 'reorder'])->name('navigations.reorder');
+        Route::resource('navigations', NavigationController::class)->except(['show']);
+    });
 
     // Newsroom CRUD
-    Route::resource('articles', \App\Http\Controllers\Admin\ArticleController::class);
+    Route::resource('articles', \App\Http\Controllers\Admin\ArticleController::class)
+        ->middleware('permission:manage.news');
 
     // Events System
-    Route::resource('event-categories', \App\Http\Controllers\Admin\EventCategoryController::class)->except(['show']);
-    Route::resource('event-tags', \App\Http\Controllers\Admin\EventTagController::class)->except(['show']);
-    Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
+    Route::middleware('permission:manage.events')->group(function () {
+        Route::resource('event-categories', \App\Http\Controllers\Admin\EventCategoryController::class)->except(['show']);
+        Route::resource('event-tags', \App\Http\Controllers\Admin\EventTagController::class)->except(['show']);
+        Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
+    });
 
     // Cabinet System
-    Route::resource('cabinets', \App\Http\Controllers\Admin\CabinetController::class)->except(['show']);
-    Route::resource('cabinet-departments', \App\Http\Controllers\Admin\CabinetDepartmentController::class)->except(['show']);
-    Route::resource('cabinet-members', \App\Http\Controllers\Admin\CabinetMemberController::class);
+    Route::middleware('permission:manage.cabinet')->group(function () {
+        Route::resource('cabinets', \App\Http\Controllers\Admin\CabinetController::class)->except(['show']);
+        Route::resource('cabinet-departments', \App\Http\Controllers\Admin\CabinetDepartmentController::class)->except(['show']);
+        Route::resource('cabinet-members', \App\Http\Controllers\Admin\CabinetMemberController::class);
+    });
 
     // Projects System
-    Route::resource('project-categories', \App\Http\Controllers\Admin\ProjectCategoryController::class)->except(['show']);
-    Route::resource('technologies', \App\Http\Controllers\Admin\TechnologyController::class)->except(['show']);
-    Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
+    Route::middleware('permission:manage.projects')->group(function () {
+        Route::resource('project-categories', \App\Http\Controllers\Admin\ProjectCategoryController::class)->except(['show']);
+        Route::resource('technologies', \App\Http\Controllers\Admin\TechnologyController::class)->except(['show']);
+        Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
+    });
 
     // Partners System
-    Route::resource('partner-categories', \App\Http\Controllers\Admin\PartnerCategoryController::class)->except(['show']);
-    Route::resource('partners', \App\Http\Controllers\Admin\PartnerController::class);
+    Route::middleware('permission:manage.partners')->group(function () {
+        Route::resource('partner-categories', \App\Http\Controllers\Admin\PartnerCategoryController::class)->except(['show']);
+        Route::resource('partners', \App\Http\Controllers\Admin\PartnerController::class);
+    });
 
     // Aspirations System
-    Route::resource('aspiration-categories', \App\Http\Controllers\Admin\AspirationCategoryController::class)->except(['show']);
-    Route::resource('aspirations', \App\Http\Controllers\Admin\AspirationController::class)->only(['index', 'show', 'update']);
+    Route::middleware('permission:manage.aspirations')->group(function () {
+        Route::resource('aspiration-categories', \App\Http\Controllers\Admin\AspirationCategoryController::class)->except(['show']);
+        Route::resource('aspirations', \App\Http\Controllers\Admin\AspirationController::class)->only(['index', 'show', 'update']);
+    });
 
     // Voting System
-    Route::resource('voting-sessions', \App\Http\Controllers\Admin\VotingSessionController::class);
-    Route::resource('candidates', \App\Http\Controllers\Admin\CandidateController::class);
+    Route::middleware('permission:manage.voting')->group(function () {
+        Route::resource('voting-sessions', \App\Http\Controllers\Admin\VotingSessionController::class);
+        Route::resource('candidates', \App\Http\Controllers\Admin\CandidateController::class);
+    });
 
     // User & Role Management (Governance)
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-    Route::post('users/{user}/status', [\App\Http\Controllers\Admin\UserController::class, 'updateStatus'])->name('users.status');
-    
-    Route::resource('invitations', \App\Http\Controllers\Admin\UserInvitationController::class)->only(['index', 'store', 'destroy']);
-    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
+    Route::middleware('permission:manage.users')->group(function () {
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+        Route::post('users/{user}/status', [\App\Http\Controllers\Admin\UserController::class, 'updateStatus'])->name('users.status');
+        Route::resource('invitations', \App\Http\Controllers\Admin\UserInvitationController::class)->only(['index', 'store', 'destroy']);
+    });
+
+    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)
+        ->middleware('permission:manage.roles');
 
     // Media Manager UI
-    Route::resource('media', \App\Http\Controllers\Admin\MediaController::class)->only(['index', 'destroy']);
+    Route::resource('media', \App\Http\Controllers\Admin\MediaController::class)
+        ->only(['index', 'destroy'])
+        ->middleware('permission:manage.media');
 
     // Activity Logs Viewer (Audit Trail)
-    Route::resource('activity-logs', \App\Http\Controllers\Admin\ActivityLogController::class)->only(['index', 'show']);
+    Route::resource('activity-logs', \App\Http\Controllers\Admin\ActivityLogController::class)
+        ->only(['index', 'show'])
+        ->middleware('permission:view.activity_logs');
 
     // Cache Management
-    Route::get('cache', [\App\Http\Controllers\Admin\CacheController::class, 'index'])->name('cache.index');
-    Route::post('cache/tag', [\App\Http\Controllers\Admin\CacheController::class, 'clearTag'])->name('cache.tag');
-    Route::post('cache/system', [\App\Http\Controllers\Admin\CacheController::class, 'clearSystem'])->name('cache.system');
-
-    // Module placeholders to be implemented
-    // Route::resource('news', NewsController::class);
-    // Route::resource('events', EventController::class);
-    // ...
+    Route::middleware('permission:manage.cache')->group(function () {
+        Route::get('cache', [\App\Http\Controllers\Admin\CacheController::class, 'index'])->name('cache.index');
+        Route::post('cache/tag', [\App\Http\Controllers\Admin\CacheController::class, 'clearTag'])->name('cache.tag');
+        Route::post('cache/system', [\App\Http\Controllers\Admin\CacheController::class, 'clearSystem'])->name('cache.system');
+    });
 });
 
 // Public Routes (Testing / Placeholder until full UI implementation)
@@ -121,10 +152,11 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['verified', 'throttle:6,1'])
         ->name('voting.store');
 
-    // Admin API endpoints (Cookie Session Authenticated)
+    // Admin API endpoints (Cookie Session Authenticated).
+    // Gated on manage.media so an ordinary member cannot use it as free storage.
     Route::prefix('api/admin')->group(function () {
         Route::post('/media/upload', [\App\Http\Controllers\Api\Admin\MediaUploadController::class, 'store'])
-            ->middleware('throttle:60,1')
+            ->middleware(['permission:manage.media', 'throttle:30,1'])
             ->name('api.admin.media.upload');
     });
 });

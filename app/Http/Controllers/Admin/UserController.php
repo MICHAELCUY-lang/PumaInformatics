@@ -40,9 +40,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $userData = UserData::fromArray($request->validated());
-        
-        $this->userService->createUser($userData);
-        
+
+        try {
+            $this->userService->createUser($userData);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully.');
     }
@@ -67,9 +71,13 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         $userData = UserData::fromArray($request->validated());
-        
-        $this->userService->updateUser($user->id, $userData);
-        
+
+        try {
+            $this->userService->updateUser($user->id, $userData);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
     }

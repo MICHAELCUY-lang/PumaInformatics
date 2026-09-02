@@ -12,7 +12,7 @@ class StoreNavigationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('manage navigations') || $this->user()->hasRole('Super Admin');
+        return $this->user()->can('manage.navigation');
     }
 
     /**

@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\GrantsPermissionsSafely;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRoleRequest extends FormRequest
 {
+    use GrantsPermissionsSafely;
+
     public function authorize(): bool
     {
         return $this->user()->can('manage.roles');
@@ -16,7 +19,7 @@ class StoreRoleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['exists:permissions,name'],
+            'permissions.*' => $this->permissionGrantRules(),
         ];
     }
 }

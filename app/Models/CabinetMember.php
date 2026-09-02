@@ -52,19 +52,18 @@ class CabinetMember extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        $this->addMediaConversion('thumbnail')
+        $this->addMediaConversion('thumbnail')->nonOptimized()
               ->width(200)
               ->height(200)
               ->sharpen(10)
               ->format('webp');
 
-        $this->addMediaConversion('portrait')
+        $this->addMediaConversion('portrait')->nonOptimized()
               ->width(600)
               ->height(800)
-              ->format('webp')
-              ->withResponsiveImages();
+              ->format('webp');
               
-        $this->addMediaConversion('featured')
+        $this->addMediaConversion('featured')->nonOptimized()
               ->width(1200)
               ->height(1200)
               ->format('webp');

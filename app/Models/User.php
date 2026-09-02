@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +14,7 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class User extends Authenticatable implements HasMedia
+class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, SoftDeletes, LogsActivity, InteractsWithMedia;
@@ -68,8 +68,8 @@ class User extends Authenticatable implements HasMedia
              ->singleFile()
              ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
              ->registerMediaConversions(function (\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null) {
-                 $this->addMediaConversion('thumbnail')->width(100)->height(100)->keepOriginalImageFormat()->nonQueued();
-                 $this->addMediaConversion('profile')->width(400)->height(400)->keepOriginalImageFormat();
+                 $this->addMediaConversion('thumbnail')->nonOptimized()->width(100)->height(100)->keepOriginalImageFormat()->nonQueued();
+                 $this->addMediaConversion('profile')->nonOptimized()->width(400)->height(400)->keepOriginalImageFormat();
              });
     }
 }

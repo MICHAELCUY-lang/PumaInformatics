@@ -9,6 +9,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -69,6 +70,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Once the site is served over TLS, generate every URL (assets, form
+        // actions, signed verification links) as https so the browser does not
+        // block them as mixed content.
+        if ($this->app->isProduction() || str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
 
         RateLimiter::for('aspirations', function (Request $request) {
             if ($request->user()) {

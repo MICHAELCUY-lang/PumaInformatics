@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,14 +11,21 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * RolesAndPermissionsSeeder must run first: every FormRequest::authorize()
+     * and Controller::authorize() call in the admin panel resolves against the
+     * permissions it creates.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $this->call([
-            RolePermissionSeeder::class,
-            SampleDataSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            AdminUserSeeder::class,
         ]);
+
+        // Demo content is for local/staging only — never for production.
+        if (! app()->isProduction()) {
+            $this->call(SampleDataSeeder::class);
+        }
     }
 }
