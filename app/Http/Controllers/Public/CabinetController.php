@@ -12,7 +12,8 @@ class CabinetController extends Controller
 {
     public function index(Request $request)
     {
-        $cabinets = Cabinet::orderBy('term_year', 'desc')->get();
+        // Oldest first, matching the homepage strip: the row reads as a timeline.
+        $cabinets = Cabinet::orderBy('term_year', 'asc')->get();
 
         // Resolve active cabinet: from query param, or the one marked active, or the latest
         $activeCabinet = null;

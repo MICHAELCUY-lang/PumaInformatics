@@ -44,9 +44,10 @@
                 <h2 id="lineage-heading" class="font-serif text-3xl md:text-4xl text-jp-indigo">
                     Every Cabinet, Every Chapter
                 </h2>
-                <p class="mt-4 text-jp-indigo/50 font-light max-w-xl mx-auto leading-relaxed">
+                <p class="mt-4 text-jp-indigo/50 font-light max-w-2xl mx-auto leading-relaxed">
                     Each generation kept its own structure and ran its own programme.
-                    Choose a cabinet to see the people and the events of that term.
+                    Choose a cabinet to see the people and events of that term, or
+                    visit one of the clubs that sit under PUMA Informatics.
                 </p>
             </div>
         @else
@@ -59,11 +60,22 @@
             'gap-8' => $compact,
         ])>
 
-        <ul @class([
-                'flex flex-wrap justify-center items-start',
-                'gap-8 md:gap-12 lg:gap-16' => ! $compact,
-                'gap-6 md:gap-10' => $compact,
-            ])>
+        <div class="text-center">
+            @if(! $compact)
+                {{-- Each group carries its own label rather than sharing the
+                     section heading: cabinets and clubs are different kinds of
+                     thing, and one title over both read as if the clubs were
+                     cabinets too. --}}
+                <h3 class="text-[10px] uppercase tracking-[0.35em] text-jp-indigo/40 font-semibold mb-8">
+                    Cabinets
+                </h3>
+            @endif
+
+            <ul @class([
+                    'flex flex-wrap justify-center items-start',
+                    'gap-8 md:gap-12 lg:gap-16' => ! $compact,
+                    'gap-6 md:gap-10' => $compact,
+                ])>
             @foreach($cabinetLineage as $cabinet)
                 @php
                     $isCurrent = $activeSlug ? $cabinet->slug === $activeSlug : $cabinet->is_active;
@@ -110,13 +122,17 @@
                     </a>
                 </li>
             @endforeach
-        </ul>
+            </ul>
+        </div>
 
         @if($clubs)
-            {{-- No rule between the groups: cabinets simply sit on the left and
-                 clubs on the right of one continuous band. Spacing carries the
-                 distinction, and each club keeps its own caption. --}}
+            {{-- No rule between the groups: cabinets sit left, clubs right, in
+                 one band. Spacing and the two headings carry the distinction. --}}
             <div class="text-center">
+                <h3 class="text-[10px] uppercase tracking-[0.35em] text-jp-indigo/40 font-semibold mb-8">
+                    Clubs &amp; Communities
+                </h3>
+
                 <ul class="flex flex-wrap justify-center items-start gap-8 md:gap-12">
                     @foreach($clubs as $club)
                         {{-- Anchor when the club has a site, plain div when it

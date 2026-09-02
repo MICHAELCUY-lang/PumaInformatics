@@ -53,12 +53,13 @@ class HomeController extends Controller
             ->take(6);
         }
 
-        // Every generation, newest first, for the lineage strip under the hero.
-        // Ordered by generation where it is known and term otherwise, so a
-        // cabinet added before the field existed still lands sensibly.
+        // Oldest generation first: the strip reads left to right as a timeline,
+        // so the earliest cabinet sits on the left and the current one on the
+        // right, next to the clubs. Ordered by generation where it is known and
+        // by term otherwise, so a cabinet predating the field still lands right.
         $cabinetLineage = Cabinet::withCount(['members' => fn ($q) => $q->where('is_active', true)])
-            ->orderByRaw('generation IS NULL, generation DESC')
-            ->orderBy('term_year', 'desc')
+            ->orderByRaw('generation IS NULL, generation ASC')
+            ->orderBy('term_year', 'asc')
             ->get();
 
         return view('public.home', compact(
