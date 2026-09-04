@@ -44,7 +44,7 @@
                      alt=""
                      fetchpriority="high"
                      class="absolute inset-0 w-full h-full object-cover object-center
-                            opacity-[0.55] grayscale-[0.30] contrast-[1.02]"
+                            opacity-[0.55] contrast-[1.02] saturate-[0.95]"
                      style="mask-image: linear-gradient(100deg, transparent 0%, transparent 22%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,1) 68%);
                             -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 22%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,1) 68%);">
             </picture>
@@ -308,7 +308,7 @@
                     <a href="{{ route('public.cabinet.show', $member->slug) }}" class="flex flex-col items-center text-center group" x-data="{ shown: false }" x-intersect.once="shown = true">
                         <div class="relative w-full aspect-[4/5] mb-8 overflow-hidden reveal shadow-elegant" style="transition-delay: {{ $index * 100 }}ms;" :class="shown ? 'active' : ''">
                             @if($member->getFirstMediaUrl('portrait'))
-                                <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full filter grayscale contrast-125 group-hover:grayscale-0 group-hover:contrast-100 transition-all duration-1000 ease-cinematic scale-105 group-hover:scale-100">
+                                <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full transition-all duration-1000 ease-cinematic scale-105 group-hover:scale-100">
                             @else
                                 <div class="w-full h-full bg-sapientia-deep flex items-center justify-center border border-white/5">
                                     <span class="font-serif text-6xl text-white/10">{{ substr($member->name, 0, 1) }}</span>

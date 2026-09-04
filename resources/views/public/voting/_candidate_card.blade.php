@@ -37,7 +37,7 @@
         <div class="md:col-span-3 relative overflow-hidden bg-jp-mist" style="min-height: 240px;">
             @if($candidate->getFirstMediaUrl('portrait'))
                 <img src="{{ $candidate->getFirstMediaUrl('portrait') }}" alt="{{ $candidate->name }}"
-                     class="absolute inset-0 w-full h-full object-cover object-top filter grayscale {{ $selectable ? 'peer-checked:grayscale-0 group-hover/card:grayscale-0' : '' }} transition-all duration-700">
+                     class="absolute inset-0 w-full h-full object-cover object-top {{ $selectable ? 'peer-checked:scale-105 group-hover/card:scale-105' : '' }} transition-all duration-700">
             @else
                 <div class="absolute inset-0 flex items-center justify-center bg-jp-indigo/5">
                     <span class="font-serif text-7xl text-jp-indigo/15">{{ substr($candidate->name, 0, 1) }}</span>

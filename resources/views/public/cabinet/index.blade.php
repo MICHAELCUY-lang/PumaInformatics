@@ -64,7 +64,7 @@
                             <a href="{{ route('public.cabinet.show', $member->slug) }}" class="group flex flex-col items-center reveal" style="transition-delay: {{ ($index % 3) * 150 }}ms;" :class="shown ? 'active' : ''">
                                 <div class="relative w-48 h-64 md:w-56 md:h-72 mb-6 overflow-hidden bg-jp-mist shadow-wave border border-jp-indigo/10 group-hover:border-jp-indigo/40 transition-colors duration-700">
                                     @if($member->getFirstMediaUrl('portrait'))
-                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-cinematic ease-cinematic filter grayscale group-hover:grayscale-0">
+                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-cinematic ease-cinematic">
                                     @else
                                         <div class="absolute inset-0 flex items-center justify-center bg-jp-indigo">
                                             <span class="font-serif text-6xl text-jp-cream/30">{{ substr($member->name, 0, 1) }}</span>
@@ -119,7 +119,7 @@
                                             <a href="{{ route('public.cabinet.show', $member->slug) }}" class="group flex flex-col items-center reveal" style="transition-delay: {{ $index * 150 }}ms;" :class="shown ? 'active' : ''">
                                                 <div class="relative w-56 h-72 md:w-64 md:h-80 mb-8 overflow-hidden bg-sapientia-mist shadow-elegant transform group-hover:-translate-y-2 transition-transform duration-700 ease-cinematic border border-sapientia-deep/10 group-hover:border-sapientia-deep/30">
                                                     @if($member->getFirstMediaUrl('portrait'))
-                                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full filter grayscale group-hover:grayscale-0 transition-all duration-1000 ease-cinematic">
+                                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full transition-all duration-1000 ease-cinematic">
                                                     @else
                                                         <div class="absolute inset-0 flex items-center justify-center bg-sapientia-deep">
                                                             <span class="font-serif text-8xl text-white/20">{{ substr($member->name, 0, 1) }}</span>
@@ -151,7 +151,7 @@
                                             <a href="{{ route('public.cabinet.show', $member->slug) }}" class="group flex flex-col items-center reveal" style="transition-delay: {{ ($index + 2) * 100 }}ms;" :class="shown ? 'active' : ''">
                                                 <div class="relative w-full aspect-[4/5] mb-6 overflow-hidden bg-sapientia-mist shadow-art transform group-hover:-translate-y-1 transition-transform duration-700 ease-cinematic border border-sapientia-deep/5 group-hover:border-sapientia-deep/20">
                                                     @if($member->getFirstMediaUrl('portrait'))
-                                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full filter grayscale group-hover:grayscale-0 transition-all duration-1000 ease-cinematic">
+                                                        <img src="{{ $member->getFirstMediaUrl('portrait', 'portrait') }}" alt="{{ $member->name }}" class="object-cover w-full h-full transition-all duration-1000 ease-cinematic">
                                                     @else
                                                         <div class="absolute inset-0 flex items-center justify-center bg-sapientia-deep">
                                                             <span class="font-serif text-5xl text-white/20">{{ substr($member->name, 0, 1) }}</span>

@@ -54,7 +54,7 @@
                                 <div class="group flex flex-col items-center justify-center p-8 bg-white border border-jp-indigo/5 hover:border-jp-gold hover:shadow-wave transition-all duration-500 reveal" style="transition-delay: {{ ($index % 4) * 100 }}ms;" :class="shown ? 'active' : ''">
                                     <div class="relative w-32 h-32 mb-6 flex items-center justify-center">
                                         @if($partner->getFirstMediaUrl('logo'))
-                                            <img src="{{ $partner->getFirstMediaUrl('logo', 'standard') }}" alt="{{ $partner->name }}" class="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100 transition-all duration-700">
+                                            <img src="{{ $partner->getFirstMediaUrl('logo', 'standard') }}" alt="{{ $partner->name }}" class="max-w-full max-h-full object-contain opacity-90 group-hover:opacity-100 transition-all duration-700">
                                         @else
                                             <div class="w-24 h-24 bg-jp-mist flex items-center justify-center">
                                                 <span class="font-serif text-2xl text-jp-indigo/30">{{ substr($partner->name, 0, 1) }}</span>

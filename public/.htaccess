@@ -12,6 +12,25 @@
     RewriteCond %{HTTP:X-Forwarded-Proto} !https
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # --- Containment -------------------------------------------------------
+    #
+    # In May 2026 a webshell was uploaded over FTP into public_html/assets and
+    # served as PHP. Replacing the document root removed it, but the rule the
+    # incident teaches is worth keeping: the only PHP this site ever needs to
+    # execute is its own front controller.
+    #
+    # Everything below is uploaded or generated content. A .php file appearing
+    # there means something has already gone wrong, and executing it is how a
+    # foothold becomes a shell. Refuse regardless of what it is named — the
+    # media library keeps the uploader's filename, so the name proves nothing.
+    RewriteRule ^(storage|build|images|clubs|logos)/.*\.(php|phtml|phar|pht|php[0-9]|inc)$ - [F,L,NC]
+
+    # Version-control and tooling directories. The dotfile rule further down
+    # only matches a file's own name, so .git/HEAD would slip past it.
+    # .well-known is deliberately absent: AutoSSL renews through it, and
+    # blocking it would silently expire the certificates a few months later.
+    RewriteRule (^|/)\.(git|svn|hg|env|idea|vscode)(/|$) - [F,L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -36,12 +55,26 @@
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-    # HSTS: enable only once HTTPS is confirmed working, it is hard to undo.
-    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # HSTS. Enabled now that AutoSSL has issued for informatics, plrc and purtc
+    # and every host redirects to HTTPS. Note this is genuinely hard to undo:
+    # browsers honour max-age even after the header stops being sent, so any
+    # future host under this domain must have a certificate before it is used.
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
 # Never serve dotfiles (.env, .git config fragments) even if one is ever copied
 # into the document root by mistake.
 <FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Database dumps, archives, editor leftovers and config files. Scanners probe
+# these constantly — on 4 September alone one host walked ~30 variations of
+# database.sql, backup.tar.gz and informatics.zip against this document root.
+# Nothing here is ever legitimate content for this site; if a downloadable
+# archive is ever published, serve it through a controller rather than by
+# loosening this rule.
+<FilesMatch "\.(sql|sqlite|db|bak|old|orig|save|swp|swo|tmp|log|ini|conf|yml|yaml|lock|dist|sh|tar|gz|tgz|zip|rar|7z)$">
     Require all denied
 </FilesMatch>
